@@ -3,6 +3,8 @@
     <h2 style="margin-bottom: 32px">创建应用</h2>
     <a-form
       :model="form"
+      :rules="rules"
+      ref="formRef"
       :style="{ width: '480px' }"
       label-align="left"
       auto-label-width
@@ -14,10 +16,14 @@
       <a-form-item field="appDesc" label="应用描述">
         <a-input v-model="form.appDesc" placeholder="请输入应用描述" />
       </a-form-item>
-      <!--      <a-form-item field="appIcon" label="应用图标">-->
-      <!--        <a-input v-model="form.appIcon" placeholder="请输入应用图标" />-->
-      <!--      </a-form-item>-->
       <a-form-item field="appIcon" label="应用图标">
+        <a-image
+            v-if="form.appIcon"
+            width="120"
+            height="100"
+            style="margin-right: 10px"
+            :src="form.appIcon"
+        />
         <PictureUploader
           :value="form.appIcon"
           :onChange="(value) => (form.appIcon = value)"
@@ -91,10 +97,18 @@ const form = ref({
   appDesc: "",
   appIcon: "",
   appName: "",
-  appType: 0,
-  scoringStrategy: 0,
+  appType: undefined,
+  scoringStrategy: undefined,
 } as API.AppAddRequest);
-
+const rules = {
+  appName: [
+    { required: true, message: "请输入应用名称" },
+    { max: 80, message: "最大长度为80" },
+  ],
+  appDesc: [{ required: true, message: "请输入应用描述" }],
+  appType: [{ required: true, message: "请选择应用类型" }],
+  scoringStrategy: [{ required: true, message: "请选择评分策略" }],
+};
 const oldApp = ref<API.AppVO>();
 
 /**
