@@ -1,0 +1,54 @@
+# 线上配置文件
+# @author 程序员麦麦
+server:
+  port: 8101
+spring:
+  # session 配置
+  session:
+    store-type: redis
+    # 30 天过期
+    timeout: 2592000
+  # 数据库配置
+  # todo 需替换配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/maidada
+    username: root
+    password: 806823
+  # Redis 配置
+  # todo 需替换配置
+  redis:
+    database: 1
+    host: localhost
+    port: 6379
+    timeout: 5000
+    password: 123456
+  # 文件上传
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+mybatis-plus:
+  configuration:
+    # 生产环境关闭日志
+    log-impl: ''
+# 接口文档配置
+knife4j:
+  basic:
+    enable: true
+    username: root
+    password: 123456
+
+# 对象存储
+# TODO 替换为你的
+cos:
+  client:
+    accessKey: XXX
+    secretKey: XXX
+    region: XXX
+    bucket: XXX
+
+# AI 配置
+# TODO 替换为你的
+ai:
+  apiKey: XXX
