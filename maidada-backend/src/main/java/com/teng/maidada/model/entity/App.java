@@ -61,6 +61,12 @@ public class App implements Serializable {
     private Long reviewerId;
 
     /**
+     * 审核用户姓名
+     */
+    @TableField(exist = false)
+    private String reviewerUserName;
+
+    /**
      * 审核时间
      */
     private Date reviewTime;
@@ -69,6 +75,12 @@ public class App implements Serializable {
      * 创建用户 id
      */
     private Long userId;
+
+    /**
+     * 创建用户姓名
+     */
+    @TableField(exist = false)
+    private String createUserName;
 
     /**
      * 创建时间

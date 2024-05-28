@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 应用接口
@@ -129,6 +132,14 @@ public class AppController {
         long size = appQueryRequest.getPageSize();
         // 查询数据库
         Page<App> appPage = appService.page(new Page<>(current, size), appService.getQueryWrapper(appQueryRequest));
+        List<App> appList = appPage.getRecords();
+        Map<Long, User> userMap = userService.list().stream().collect(Collectors.toMap(User::getId, u -> u));
+        appList.forEach(app -> {
+            // 设置审核人姓名
+            app.setReviewerUserName(userMap.getOrDefault(app.getReviewerId(), new User()).getUserName());
+            // 设置创建人姓名
+            app.setCreateUserName(userMap.getOrDefault(app.getUserId(), new User()).getUserName());
+        });
         return ResultUtils.success(appPage);
     }
 
