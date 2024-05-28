@@ -1,5 +1,6 @@
 package com.teng.maidada.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.teng.maidada.annotation.AuthCheck;
@@ -21,7 +22,9 @@ import com.teng.maidada.service.AppService;
 import com.teng.maidada.service.QuestionService;
 import com.teng.maidada.service.UserService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +36,6 @@ import java.util.List;
  * 题目接口
  *
  * @author 程序员麦麦
- *
  */
 @RestController
 @RequestMapping("/question")
@@ -52,25 +54,20 @@ public class QuestionController {
     @Resource
     private AiManager aiManager;
 
-    // region 增删改查
-
-    /**
-     * 创建题目
-     *
-     * @param questionAddRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("创建题目")
     @PostMapping("/add")
     public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(questionAddRequest == null, ErrorCode.PARAMS_ERROR);
         // 在此处将实体类和 DTO 进行转换
         Question question = new Question();
         BeanUtils.copyProperties(questionAddRequest, question);
-        List<QuestionContentDTO> questionContentDTO = questionAddRequest.getQuestionContent();
-        question.setQuestionContent(JSONUtil.toJsonStr(questionContentDTO));
+        List<QuestionContentDTO> questionContentDTOs = questionAddRequest.getQuestionContent();
+        question.setQuestionContent(JSONUtil.toJsonStr(questionContentDTOs));
         // 数据校验
         questionService.validQuestion(question, true);
+        // 题目内容 JSON 结构进行校验
+        Long appId = questionAddRequest.getAppId();
+        questionService.validaQuestionContent(questionContentDTOs, appId);
         // 填充默认值
         User loginUser = userService.getLoginUser(request);
         question.setUserId(loginUser.getId());
@@ -82,13 +79,7 @@ public class QuestionController {
         return ResultUtils.success(newQuestionId);
     }
 
-    /**
-     * 删除题目
-     *
-     * @param deleteRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("删除题目")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteQuestion(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -109,12 +100,7 @@ public class QuestionController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 更新题目（仅管理员可用）
-     *
-     * @param questionUpdateRequest
-     * @return
-     */
+    @ApiOperation("更新题目（仅管理员可用）")
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateQuestion(@RequestBody QuestionUpdateRequest questionUpdateRequest) {
@@ -128,6 +114,8 @@ public class QuestionController {
         question.setQuestionContent(JSONUtil.toJsonStr(questionContentDTO));
         // 数据校验
         questionService.validQuestion(question, false);
+        // 题目内容校验
+        questionService.validaQuestionContent(questionContentDTO, questionUpdateRequest.getAppId());
         // 判断是否存在
         long id = questionUpdateRequest.getId();
         Question oldQuestion = questionService.getById(id);
@@ -138,70 +126,46 @@ public class QuestionController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 根据 id 获取题目（封装类）
-     *
-     * @param id
-     * @return
-     */
+    @ApiOperation("根据 id 获取题目（封装类）")
     @GetMapping("/get/vo")
-    public BaseResponse<QuestionVO> getQuestionVOById(long id, HttpServletRequest request) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<QuestionVO> getQuestionVOById(Long id, HttpServletRequest request) {
+        ThrowUtils.throwIf(id == null || id <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
         Question question = questionService.getById(id);
         ThrowUtils.throwIf(question == null, ErrorCode.NOT_FOUND_ERROR);
         // 获取封装类
-        return ResultUtils.success(questionService.getQuestionVO(question, request));
+        return ResultUtils.success(questionService.getQuestionVO(question));
     }
 
-    /**
-     * 分页获取题目列表（仅管理员可用）
-     *
-     * @param questionQueryRequest
-     * @return
-     */
+    @ApiOperation("分页获取题目列表（仅管理员可用）")
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest) {
+        ThrowUtils.throwIf(questionQueryRequest == null, ErrorCode.PARAMS_ERROR);
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
         // 查询数据库
-        Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
+        Page<Question> questionPage = questionService.page(new Page<>(current, size), questionService.getQueryWrapper(questionQueryRequest));
         return ResultUtils.success(questionPage);
     }
 
-    /**
-     * 分页获取题目列表（封装类）
-     *
-     * @param questionQueryRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("分页获取题目列表（封装类）")
     @PostMapping("/list/page/vo")
-    public BaseResponse<Page<QuestionVO>> listQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-                                                               HttpServletRequest request) {
+    public BaseResponse<Page<QuestionVO>> listQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(questionQueryRequest == null, ErrorCode.PARAMS_ERROR);
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 查询数据库
-        Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
+        Page<Question> questionPage = questionService.page(new Page<>(current, size), questionService.getQueryWrapper(questionQueryRequest));
         // 获取封装类
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
     }
 
-    /**
-     * 分页获取当前登录用户创建的题目列表
-     *
-     * @param questionQueryRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("分页获取当前登录用户创建的题目列表")
     @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-                                                                 HttpServletRequest request) {
+    public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(questionQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
         User loginUser = userService.getLoginUser(request);
@@ -211,19 +175,12 @@ public class QuestionController {
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 查询数据库
-        Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
+        Page<Question> questionPage = questionService.page(new Page<>(current, size), questionService.getQueryWrapper(questionQueryRequest));
         // 获取封装类
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
     }
 
-    /**
-     * 编辑题目（给用户使用）
-     *
-     * @param questionEditRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("编辑题目（给用户使用）")
     @PostMapping("/edit")
     public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest, HttpServletRequest request) {
         if (questionEditRequest == null || questionEditRequest.getId() <= 0) {
@@ -232,10 +189,13 @@ public class QuestionController {
         // 在此处将实体类和 DTO 进行转换
         Question question = new Question();
         BeanUtils.copyProperties(questionEditRequest, question);
-        List<QuestionContentDTO> questionContentDTO = questionEditRequest.getQuestionContent();
-        question.setQuestionContent(JSONUtil.toJsonStr(questionContentDTO));
+        List<QuestionContentDTO> questionContentDTOS = questionEditRequest.getQuestionContent();
+        question.setQuestionContent(JSONUtil.toJsonStr(questionContentDTOS));
         // 数据校验
         questionService.validQuestion(question, false);
+        // 校验题目内容
+        Long appId = questionEditRequest.getAppId();
+        questionService.validaQuestionContent(questionContentDTOS, appId);
         User loginUser = userService.getLoginUser(request);
         // 判断是否存在
         long id = questionEditRequest.getId();
@@ -251,9 +211,7 @@ public class QuestionController {
         return ResultUtils.success(true);
     }
 
-    // endregion
-
-    // region AI 生成题目功能
+    // AI 生成题目功能
     private static final String GENERATE_QUESTION_SYSTEM_MESSAGE = "你是一位严谨的出题专家，我会给你如下信息：\n" +
             "```\n" +
             "应用名称，\n" +

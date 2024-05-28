@@ -20,6 +20,11 @@ public class QuestionUpdateRequest implements Serializable {
     private Long id;
 
     /**
+     * 应用 id
+     */
+    private Long appId;
+
+    /**
      * 题目内容（json格式）
      */
     private List<QuestionContentDTO> questionContent;

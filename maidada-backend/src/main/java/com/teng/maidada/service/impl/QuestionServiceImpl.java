@@ -8,10 +8,12 @@ import com.teng.maidada.common.ErrorCode;
 import com.teng.maidada.constant.CommonConstant;
 import com.teng.maidada.exception.ThrowUtils;
 import com.teng.maidada.mapper.QuestionMapper;
+import com.teng.maidada.model.dto.question.QuestionContentDTO;
 import com.teng.maidada.model.dto.question.QuestionQueryRequest;
 import com.teng.maidada.model.entity.App;
 import com.teng.maidada.model.entity.Question;
 import com.teng.maidada.model.entity.User;
+import com.teng.maidada.model.enums.AppTypeEnum;
 import com.teng.maidada.model.vo.QuestionVO;
 import com.teng.maidada.model.vo.UserVO;
 import com.teng.maidada.service.AppService;
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
  * 题目服务实现
  *
  * @author 程序员麦麦
- * 
+ *
  */
 @Service
 @Slf4j
@@ -49,7 +51,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     /**
      * 校验数据
      *
-     * @param question
+     * @param question 题目
      * @param add      对创建的数据进行校验
      */
     @Override
@@ -58,17 +60,14 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 从对象中取值
         String questionContent = question.getQuestionContent();
         Long appId = question.getAppId();
-        // 创建数据时，参数不能为空
-        if (add) {
-            // 补充校验规则
-            ThrowUtils.throwIf(StringUtils.isBlank(questionContent), ErrorCode.PARAMS_ERROR, "题目内容不能为空");
-            ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 非法");
-        }
-        // 修改数据时，有参数则校验
-        // 补充校验规则
-        if (appId != null) {
-            App app = appService.getById(appId);
-            ThrowUtils.throwIf(app == null, ErrorCode.PARAMS_ERROR, "应用不存在");
+        Long id = question.getId();
+        ThrowUtils.throwIf(StringUtils.isBlank(questionContent), ErrorCode.PARAMS_ERROR, "题目内容不能为空");
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 非法");
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.PARAMS_ERROR, "应用不存在");
+        if (!add) {
+            // 修改题目 补充校验规则
+            ThrowUtils.throwIf(id == null || id <= 0, ErrorCode.PARAMS_ERROR, "id 非法");
         }
     }
 
@@ -102,9 +101,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         queryWrapper.eq(ObjectUtils.isNotEmpty(appId), "appId", appId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         // 排序规则
-        queryWrapper.orderBy(SqlUtils.validSortField(sortField),
-                sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
-                sortField);
+        if (!SqlUtils.validSortField(sortField)) {
+            queryWrapper.orderByDesc("createTime");
+        } else {
+            queryWrapper.orderBy(true, sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
+        }
         return queryWrapper;
     }
 
@@ -112,17 +113,14 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
      * 获取题目封装
      *
      * @param question
-     * @param request
      * @return
      */
     @Override
-    public QuestionVO getQuestionVO(Question question, HttpServletRequest request) {
+    public QuestionVO getQuestionVO(Question question) {
         // 对象转封装类
         QuestionVO questionVO = QuestionVO.objToVo(question);
 
         // 可以根据需要为封装对象补充值，不需要的内容可以删除
-        // region 可选
-        // 1. 关联查询用户信息
         Long userId = question.getUserId();
         User user = null;
         if (userId != null && userId > 0) {
@@ -130,8 +128,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         UserVO userVO = userService.getUserVO(user);
         questionVO.setUser(userVO);
-        // endregion
-
         return questionVO;
     }
 
@@ -150,29 +146,47 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             return questionVOPage;
         }
         // 对象列表 => 封装对象列表
-        List<QuestionVO> questionVOList = questionList.stream().map(question -> {
-            return QuestionVO.objToVo(question);
-        }).collect(Collectors.toList());
-
+        List<QuestionVO> questionVOList = questionList.stream().map(QuestionVO::objToVo).collect(Collectors.toList());
         // 可以根据需要为封装对象补充值，不需要的内容可以删除
-        // region 可选
-        // 1. 关联查询用户信息
+        // 关联查询用户信息
         Set<Long> userIdSet = questionList.stream().map(Question::getUserId).collect(Collectors.toSet());
-        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
-                .collect(Collectors.groupingBy(User::getId));
+        Map<Long, User> userMap = userService.listByIds(userIdSet).stream().collect(Collectors.toMap(User::getId, u -> u));
         // 填充信息
         questionVOList.forEach(questionVO -> {
             Long userId = questionVO.getUserId();
-            User user = null;
-            if (userIdUserListMap.containsKey(userId)) {
-                user = userIdUserListMap.get(userId).get(0);
-            }
+            User user = userMap.getOrDefault(userId, null);
             questionVO.setUser(userService.getUserVO(user));
         });
-        // endregion
-
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
+    }
+
+    @Override
+    public void validaQuestionContent(List<QuestionContentDTO> questionContentDTOs, Long appId) {
+        App app = appService.getById(appId);
+        Integer appType = app.getAppType();
+        questionContentDTOs.forEach(questionContentDTO -> {
+            String title = questionContentDTO.getTitle();
+            ThrowUtils.throwIf(StringUtils.isBlank(title), ErrorCode.PARAMS_ERROR, "题目标题不能为空");
+            List<QuestionContentDTO.Option> options = questionContentDTO.getOptions();
+            ThrowUtils.throwIf(CollUtil.isEmpty(options), ErrorCode.PARAMS_ERROR, "选项列表不能为空");
+            options.forEach(option -> {
+                ThrowUtils.throwIf(ObjectUtils.isEmpty(option), ErrorCode.PARAMS_ERROR, "选项不能为空");
+                String key = option.getKey();
+                ThrowUtils.throwIf(StringUtils.isBlank(key), ErrorCode.PARAMS_ERROR, "选项 key 不能为空");
+                String value = option.getValue();
+                ThrowUtils.throwIf(StringUtils.isBlank(value), ErrorCode.PARAMS_ERROR, "选项内容不能为空");
+                if (appType.equals(AppTypeEnum.TEST.getValue())) {
+                    // 测评类 result 必须存在
+                    String result = option.getResult();
+                    ThrowUtils.throwIf(StringUtils.isBlank(result), ErrorCode.PARAMS_ERROR, "result 非法");
+                } else if (appType.equals(AppTypeEnum.SCORE.getValue())) {
+                    // 得分类 score 必须存在
+                    Integer score = option.getScore();
+                    ThrowUtils.throwIf(score == null || score < 0, ErrorCode.PARAMS_ERROR, "score 非法");
+                }
+            });
+        });
     }
 
 }

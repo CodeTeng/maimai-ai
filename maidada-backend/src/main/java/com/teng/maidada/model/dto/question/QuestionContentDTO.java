@@ -36,7 +36,7 @@ public class QuestionContentDTO {
         /**
          * 如果是得分类 score 设置本题分数
          */
-        private int score;
+        private Integer score;
 
         /**
          * 选型内容

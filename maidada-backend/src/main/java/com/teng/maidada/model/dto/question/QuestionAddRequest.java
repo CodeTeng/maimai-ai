@@ -9,11 +9,10 @@ import java.util.List;
  * 创建题目请求
  *
  * @author 程序员麦麦
- * 
+ *
  */
 @Data
 public class QuestionAddRequest implements Serializable {
-
     /**
      * 题目内容（json格式）
      */

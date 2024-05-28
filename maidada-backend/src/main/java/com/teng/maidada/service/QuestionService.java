@@ -3,17 +3,19 @@ package com.teng.maidada.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.teng.maidada.model.dto.question.QuestionContentDTO;
 import com.teng.maidada.model.dto.question.QuestionQueryRequest;
 import com.teng.maidada.model.entity.Question;
 import com.teng.maidada.model.vo.QuestionVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题目服务
  *
  * @author 程序员麦麦
- * 
+ *
  */
 public interface QuestionService extends IService<Question> {
 
@@ -32,15 +34,14 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     QueryWrapper<Question> getQueryWrapper(QuestionQueryRequest questionQueryRequest);
-    
+
     /**
      * 获取题目封装
      *
      * @param question
-     * @param request
      * @return
      */
-    QuestionVO getQuestionVO(Question question, HttpServletRequest request);
+    QuestionVO getQuestionVO(Question question);
 
     /**
      * 分页获取题目封装
@@ -50,4 +51,11 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
+
+    /**
+     * 校验题目内容结构
+     * @param questionContentDTOs
+     * @param appId
+     */
+    void validaQuestionContent(List<QuestionContentDTO> questionContentDTOs, Long appId);
 }
