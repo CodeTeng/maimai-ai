@@ -102,7 +102,6 @@
 
 <script setup lang="ts">
 import { defineProps, ref, watchEffect, withDefaults } from "vue";
-import API from "@/api";
 import { useRouter } from "vue-router";
 import {
   addQuestionUsingPost,
@@ -219,6 +218,7 @@ const handleSubmit = async () => {
   if (oldQuestion.value?.id) {
     res = await editQuestionUsingPost({
       id: oldQuestion.value.id,
+      appId: props.appId,
       questionContent: questionContent.value,
     });
   } else {
