@@ -13,11 +13,9 @@ import java.util.List;
  * 评分结果视图
  *
  * @author 程序员麦麦
- * 
  */
 @Data
 public class ScoringResultVO implements Serializable {
-
     /**
      * id
      */
@@ -52,6 +50,21 @@ public class ScoringResultVO implements Serializable {
      * 应用 id
      */
     private Long appId;
+
+    /**
+     * 应用名称
+     */
+    private String appName;
+
+    /**
+     * 应用类型（0-得分类，1-测评类）
+     */
+    private Integer appType;
+
+    /**
+     * 评分策略（0-自定义，1-AI）
+     */
+    private Integer scoringStrategy;
 
     /**
      * 创建用户 id

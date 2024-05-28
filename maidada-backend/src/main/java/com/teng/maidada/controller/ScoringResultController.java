@@ -19,6 +19,8 @@ import com.teng.maidada.model.entity.User;
 import com.teng.maidada.model.vo.ScoringResultVO;
 import com.teng.maidada.service.ScoringResultService;
 import com.teng.maidada.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -31,28 +33,19 @@ import java.util.List;
  * 评分结果接口
  *
  * @author 程序员麦麦
- * 
  */
 @RestController
 @RequestMapping("/scoringResult")
 @Slf4j
+@Api(tags = "评分结果接口")
 public class ScoringResultController {
-
     @Resource
     private ScoringResultService scoringResultService;
 
     @Resource
     private UserService userService;
 
-    // region 增删改查
-
-    /**
-     * 创建评分结果
-     *
-     * @param scoringResultAddRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("创建评分结果")
     @PostMapping("/add")
     public BaseResponse<Long> addScoringResult(@RequestBody ScoringResultAddRequest scoringResultAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(scoringResultAddRequest == null, ErrorCode.PARAMS_ERROR);
@@ -74,13 +67,7 @@ public class ScoringResultController {
         return ResultUtils.success(newScoringResultId);
     }
 
-    /**
-     * 删除评分结果
-     *
-     * @param deleteRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("删除评分结果")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteScoringResult(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -101,12 +88,7 @@ public class ScoringResultController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 更新评分结果（仅管理员可用）
-     *
-     * @param scoringResultUpdateRequest
-     * @return
-     */
+    @ApiOperation("更新评分结果（仅管理员可用）")
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateScoringResult(@RequestBody ScoringResultUpdateRequest scoringResultUpdateRequest) {
@@ -130,15 +112,10 @@ public class ScoringResultController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 根据 id 获取评分结果（封装类）
-     *
-     * @param id
-     * @return
-     */
+    @ApiOperation("根据 id 获取评分结果（封装类）")
     @GetMapping("/get/vo")
-    public BaseResponse<ScoringResultVO> getScoringResultVOById(long id, HttpServletRequest request) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<ScoringResultVO> getScoringResultVOById(Long id, HttpServletRequest request) {
+        ThrowUtils.throwIf(id == null || id <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
         ScoringResult scoringResult = scoringResultService.getById(id);
         ThrowUtils.throwIf(scoringResult == null, ErrorCode.NOT_FOUND_ERROR);
@@ -146,33 +123,22 @@ public class ScoringResultController {
         return ResultUtils.success(scoringResultService.getScoringResultVO(scoringResult, request));
     }
 
-    /**
-     * 分页获取评分结果列表（仅管理员可用）
-     *
-     * @param scoringResultQueryRequest
-     * @return
-     */
+    @ApiOperation("分页获取评分结果列表（仅管理员可用）")
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<ScoringResult>> listScoringResultByPage(@RequestBody ScoringResultQueryRequest scoringResultQueryRequest) {
+        ThrowUtils.throwIf(scoringResultQueryRequest == null, ErrorCode.PARAMS_ERROR);
         long current = scoringResultQueryRequest.getCurrent();
         long size = scoringResultQueryRequest.getPageSize();
         // 查询数据库
-        Page<ScoringResult> scoringResultPage = scoringResultService.page(new Page<>(current, size),
-                scoringResultService.getQueryWrapper(scoringResultQueryRequest));
+        Page<ScoringResult> scoringResultPage = scoringResultService.page(new Page<>(current, size), scoringResultService.getQueryWrapper(scoringResultQueryRequest));
         return ResultUtils.success(scoringResultPage);
     }
 
-    /**
-     * 分页获取评分结果列表（封装类）
-     *
-     * @param scoringResultQueryRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("分页获取评分结果列表（封装类）")
     @PostMapping("/list/page/vo")
-    public BaseResponse<Page<ScoringResultVO>> listScoringResultVOByPage(@RequestBody ScoringResultQueryRequest scoringResultQueryRequest,
-                                                               HttpServletRequest request) {
+    public BaseResponse<Page<ScoringResultVO>> listScoringResultVOByPage(@RequestBody ScoringResultQueryRequest scoringResultQueryRequest) {
+        ThrowUtils.throwIf(scoringResultQueryRequest == null, ErrorCode.PARAMS_ERROR);
         long current = scoringResultQueryRequest.getCurrent();
         long size = scoringResultQueryRequest.getPageSize();
         // 限制爬虫
@@ -181,19 +147,12 @@ public class ScoringResultController {
         Page<ScoringResult> scoringResultPage = scoringResultService.page(new Page<>(current, size),
                 scoringResultService.getQueryWrapper(scoringResultQueryRequest));
         // 获取封装类
-        return ResultUtils.success(scoringResultService.getScoringResultVOPage(scoringResultPage, request));
+        return ResultUtils.success(scoringResultService.getScoringResultVOPage(scoringResultPage));
     }
 
-    /**
-     * 分页获取当前登录用户创建的评分结果列表
-     *
-     * @param scoringResultQueryRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("分页获取当前登录用户创建的评分结果列表")
     @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<ScoringResultVO>> listMyScoringResultVOByPage(@RequestBody ScoringResultQueryRequest scoringResultQueryRequest,
-                                                                 HttpServletRequest request) {
+    public BaseResponse<Page<ScoringResultVO>> listMyScoringResultVOByPage(@RequestBody ScoringResultQueryRequest scoringResultQueryRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(scoringResultQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
         User loginUser = userService.getLoginUser(request);
@@ -206,16 +165,10 @@ public class ScoringResultController {
         Page<ScoringResult> scoringResultPage = scoringResultService.page(new Page<>(current, size),
                 scoringResultService.getQueryWrapper(scoringResultQueryRequest));
         // 获取封装类
-        return ResultUtils.success(scoringResultService.getScoringResultVOPage(scoringResultPage, request));
+        return ResultUtils.success(scoringResultService.getScoringResultVOPage(scoringResultPage));
     }
 
-    /**
-     * 编辑评分结果（给用户使用）
-     *
-     * @param scoringResultEditRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("编辑评分结果（给用户使用）")
     @PostMapping("/edit")
     public BaseResponse<Boolean> editScoringResult(@RequestBody ScoringResultEditRequest scoringResultEditRequest, HttpServletRequest request) {
         if (scoringResultEditRequest == null || scoringResultEditRequest.getId() <= 0) {
@@ -242,6 +195,4 @@ public class ScoringResultController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
-
-    // endregion
 }

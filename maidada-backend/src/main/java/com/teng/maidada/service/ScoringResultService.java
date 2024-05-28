@@ -46,8 +46,7 @@ public interface ScoringResultService extends IService<ScoringResult> {
      * 分页获取评分结果封装
      *
      * @param scoringResultPage
-     * @param request
      * @return
      */
-    Page<ScoringResultVO> getScoringResultVOPage(Page<ScoringResult> scoringResultPage, HttpServletRequest request);
+    Page<ScoringResultVO> getScoringResultVOPage(Page<ScoringResult> scoringResultPage);
 }

@@ -9,11 +9,10 @@ import java.util.List;
  * 创建评分结果请求
  *
  * @author 程序员麦麦
- * 
+ *
  */
 @Data
 public class ScoringResultAddRequest implements Serializable {
-
     /**
      * 结果名称，如物流师
      */

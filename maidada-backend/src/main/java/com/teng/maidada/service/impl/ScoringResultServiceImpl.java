@@ -12,6 +12,7 @@ import com.teng.maidada.model.dto.scoringResult.ScoringResultQueryRequest;
 import com.teng.maidada.model.entity.App;
 import com.teng.maidada.model.entity.ScoringResult;
 import com.teng.maidada.model.entity.User;
+import com.teng.maidada.model.enums.AppTypeEnum;
 import com.teng.maidada.model.vo.ScoringResultVO;
 import com.teng.maidada.model.vo.UserVO;
 import com.teng.maidada.service.AppService;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
  * 评分结果服务实现
  *
  * @author 程序员麦麦
- * 
+ *
  */
 @Service
 @Slf4j
@@ -49,7 +50,7 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
     /**
      * 校验数据
      *
-     * @param scoringResult
+     * @param scoringResult 评分结果
      * @param add           对创建的数据进行校验
      */
     @Override
@@ -59,28 +60,30 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         String resultName = scoringResult.getResultName();
         Long appId = scoringResult.getAppId();
         // 创建数据时，参数不能为空
-        if (add) {
-            // 补充校验规则
-            ThrowUtils.throwIf(StringUtils.isBlank(resultName), ErrorCode.PARAMS_ERROR, "结果名称不能为空");
-            ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 非法");
-        }
-        // 修改数据时，有参数则校验
-        // 补充校验规则
+        ThrowUtils.throwIf(StringUtils.isBlank(resultName), ErrorCode.PARAMS_ERROR, "结果名称不能为空");
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 非法");
         if (StringUtils.isNotBlank(resultName)) {
             ThrowUtils.throwIf(resultName.length() > 128, ErrorCode.PARAMS_ERROR, "结果名称不能超过 128");
         }
-        // 补充校验规则
-        if (appId != null) {
-            App app = appService.getById(appId);
-            ThrowUtils.throwIf(app == null, ErrorCode.PARAMS_ERROR, "应用不存在");
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.PARAMS_ERROR, "应用不存在");
+        Integer appType = app.getAppType();
+        String resultProp = scoringResult.getResultProp();
+        if (appType.equals(AppTypeEnum.TEST.getValue())) {
+            // 测评类 必须包含 resultProp
+            ThrowUtils.throwIf(StringUtils.isBlank(resultProp), ErrorCode.PARAMS_ERROR, "测评类必须包含 resultProp");
+        } else if (appType.equals(AppTypeEnum.SCORE.getValue())) {
+            // 得分类 必须包含 resultScoreRange
+            ThrowUtils.throwIf(scoringResult.getResultScoreRange() == null || scoringResult.getResultScoreRange() < 0, ErrorCode.PARAMS_ERROR, "得分类必须包含 resultScoreRange");
+        }
+        if (!add) {
+            // 补充校验规则
+            ThrowUtils.throwIf(scoringResult.getId() == null || scoringResult.getId() <= 0, ErrorCode.PARAMS_ERROR, "id 非法");
         }
     }
 
     /**
      * 获取查询条件
-     *
-     * @param scoringResultQueryRequest
-     * @return
      */
     @Override
     public QueryWrapper<ScoringResult> getQueryWrapper(ScoringResultQueryRequest scoringResultQueryRequest) {
@@ -120,27 +123,23 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         queryWrapper.eq(ObjectUtils.isNotEmpty(resultScoreRange), "resultScoreRange", resultScoreRange);
         queryWrapper.eq(StringUtils.isNotBlank(resultPicture), "resultPicture", resultPicture);
         // 排序规则
-        queryWrapper.orderBy(SqlUtils.validSortField(sortField),
-                sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
-                sortField);
+        if (!SqlUtils.validSortField(sortField)) {
+            queryWrapper.orderByDesc("createTime");
+        } else {
+            queryWrapper.orderBy(true, sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
+        }
         return queryWrapper;
     }
 
     /**
      * 获取评分结果封装
-     *
-     * @param scoringResult
-     * @param request
-     * @return
      */
     @Override
     public ScoringResultVO getScoringResultVO(ScoringResult scoringResult, HttpServletRequest request) {
         // 对象转封装类
         ScoringResultVO scoringResultVO = ScoringResultVO.objToVo(scoringResult);
-
         // 可以根据需要为封装对象补充值，不需要的内容可以删除
-        // region 可选
-        // 1. 关联查询用户信息
+        // 关联查询用户信息
         Long userId = scoringResult.getUserId();
         User user = null;
         if (userId != null && userId > 0) {
@@ -148,47 +147,46 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         }
         UserVO userVO = userService.getUserVO(user);
         scoringResultVO.setUser(userVO);
-        // endregion
-
+        App app = appService.getById(scoringResult.getAppId());
+        if (app != null) {
+            scoringResultVO.setAppName(app.getAppName());
+            scoringResultVO.setAppType(app.getAppType());
+            scoringResultVO.setScoringStrategy(app.getScoringStrategy());
+        }
         return scoringResultVO;
     }
 
     /**
      * 分页获取评分结果封装
-     *
-     * @param scoringResultPage
-     * @param request
-     * @return
      */
     @Override
-    public Page<ScoringResultVO> getScoringResultVOPage(Page<ScoringResult> scoringResultPage, HttpServletRequest request) {
+    public Page<ScoringResultVO> getScoringResultVOPage(Page<ScoringResult> scoringResultPage) {
         List<ScoringResult> scoringResultList = scoringResultPage.getRecords();
         Page<ScoringResultVO> scoringResultVOPage = new Page<>(scoringResultPage.getCurrent(), scoringResultPage.getSize(), scoringResultPage.getTotal());
         if (CollUtil.isEmpty(scoringResultList)) {
             return scoringResultVOPage;
         }
         // 对象列表 => 封装对象列表
-        List<ScoringResultVO> scoringResultVOList = scoringResultList.stream().map(scoringResult -> {
-            return ScoringResultVO.objToVo(scoringResult);
-        }).collect(Collectors.toList());
-
+        List<ScoringResultVO> scoringResultVOList = scoringResultList.stream().map(ScoringResultVO::objToVo).collect(Collectors.toList());
         // 可以根据需要为封装对象补充值，不需要的内容可以删除
-        // region 可选
-        // 1. 关联查询用户信息
+        // 关联查询用户信息
         Set<Long> userIdSet = scoringResultList.stream().map(ScoringResult::getUserId).collect(Collectors.toSet());
-        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
-                .collect(Collectors.groupingBy(User::getId));
+        Map<Long, User> userMap = userService.listByIds(userIdSet).stream().collect(Collectors.toMap(User::getId, u -> u));
+        // 关联查询APP信息
+        Set<Long> appIdSet = scoringResultList.stream().map(ScoringResult::getAppId).collect(Collectors.toSet());
+        Map<Long, App> appMap = appService.listByIds(appIdSet).stream().collect(Collectors.toMap(App::getId, app -> app));
         // 填充信息
         scoringResultVOList.forEach(scoringResultVO -> {
             Long userId = scoringResultVO.getUserId();
-            User user = null;
-            if (userIdUserListMap.containsKey(userId)) {
-                user = userIdUserListMap.get(userId).get(0);
-            }
+            User user = userMap.getOrDefault(userId, null);
             scoringResultVO.setUser(userService.getUserVO(user));
+            App app = appMap.getOrDefault(scoringResultVO.getAppId(), null);
+            if (app != null) {
+                scoringResultVO.setAppName(app.getAppName());
+                scoringResultVO.setAppType(app.getAppType());
+                scoringResultVO.setScoringStrategy(app.getScoringStrategy());
+            }
         });
-        // endregion
-
         scoringResultVOPage.setRecords(scoringResultVOList);
         return scoringResultVOPage;
     }
