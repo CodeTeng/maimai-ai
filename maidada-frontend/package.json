@@ -14,12 +14,15 @@
     "@bytemd/vue-next": "^1.21.0",
     "axios": "^1.6.8",
     "core-js": "^3.8.3",
+    "normalize.css": "^8.0.1",
+    "nprogress": "^0.2.0",
     "pinia": "^2.1.7",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.2",
+    "@types/nprogress": "^0.2.3",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@umijs/openapi": "^1.12.1",

@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import "@arco-design/web-vue/dist/arco.css";
 import router from "./router";
 import "@/access";
+import "normalize.css";
 
 const pinia = createPinia();
 

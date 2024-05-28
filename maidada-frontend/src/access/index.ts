@@ -2,9 +2,13 @@ import router from "@/router";
 import { useLoginUserStore } from "@/store/userStore";
 import ACCESS_ENUM from "@/access/accessEnum";
 import checkAccess from "@/access/checkAccess";
+import NProgress from "nprogress";
+import "nprogress/nprogress.css";
 
 // 进入页面前，进行权限校验
 router.beforeEach(async (to, from, next) => {
+  // 开启加载进度
+  NProgress.start();
   // 获取当前登录用户
   const loginUserStore = useLoginUserStore();
   let loginUser = loginUserStore.loginUser;
@@ -35,4 +39,12 @@ router.beforeEach(async (to, from, next) => {
     }
   }
   next();
+});
+
+// 后置守卫
+router.afterEach((to) => {
+  // 修改页面标题
+  document.title = to.name as string;
+  // 加载完毕
+  NProgress.done();
 });
