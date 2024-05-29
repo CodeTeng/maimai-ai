@@ -50,4 +50,11 @@ public interface UserAnswerService extends IService<UserAnswer> {
      * @return
      */
     Page<UserAnswerVO> getUserAnswerVOPage(Page<UserAnswer> userAnswerPage, HttpServletRequest request);
+
+    /**
+     * 创建用户答案
+     * @param userAnswer
+     * @param request
+     */
+    Long addUserAnswer(UserAnswer userAnswer, HttpServletRequest request);
 }

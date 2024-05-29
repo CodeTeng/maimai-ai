@@ -21,8 +21,11 @@ import com.teng.maidada.model.enums.ReviewStatusEnum;
 import com.teng.maidada.model.vo.UserAnswerVO;
 import com.teng.maidada.scoring.ScoringStrategyExecutor;
 import com.teng.maidada.service.AppService;
+import com.teng.maidada.service.QuestionService;
 import com.teng.maidada.service.UserAnswerService;
 import com.teng.maidada.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +42,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/userAnswer")
 @Slf4j
+@Api(tags = "用户答案接口")
 public class UserAnswerController {
-
     @Resource
     private UserAnswerService userAnswerService;
 
@@ -50,18 +53,7 @@ public class UserAnswerController {
     @Resource
     private UserService userService;
 
-    @Resource
-    private ScoringStrategyExecutor scoringStrategyExecutor;
-
-    // region 增删改查
-
-    /**
-     * 创建用户答案
-     *
-     * @param userAnswerAddRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("创建用户答案")
     @PostMapping("/add")
     public BaseResponse<Long> addUserAnswer(@RequestBody UserAnswerAddRequest userAnswerAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(userAnswerAddRequest == null, ErrorCode.PARAMS_ERROR);
@@ -72,40 +64,11 @@ public class UserAnswerController {
         userAnswer.setChoices(JSONUtil.toJsonStr(choices));
         // 数据校验
         userAnswerService.validUserAnswer(userAnswer, true);
-        // 判断 app 是否存在
-        Long appId = userAnswerAddRequest.getAppId();
-        App app = appService.getById(appId);
-        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
-        if (!ReviewStatusEnum.PASS.equals(ReviewStatusEnum.getEnumByValue(app.getReviewStatus()))) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "应用未通过审核，无法答题");
-        }
-        // 填充默认值
-        User loginUser = userService.getLoginUser(request);
-        userAnswer.setUserId(loginUser.getId());
-        // 写入数据库
-        boolean result = userAnswerService.save(userAnswer);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        // 返回新写入的数据 id
-        long newUserAnswerId = userAnswer.getId();
-        // 调用评分模块
-        try {
-            UserAnswer userAnswerWithResult = scoringStrategyExecutor.doScore(choices, app);
-            userAnswerWithResult.setId(newUserAnswerId);
-            userAnswerService.updateById(userAnswerWithResult);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "评分错误");
-        }
+        Long newUserAnswerId = userAnswerService.addUserAnswer(userAnswer, request);
         return ResultUtils.success(newUserAnswerId);
     }
 
-    /**
-     * 删除用户答案
-     *
-     * @param deleteRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("删除用户答案")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUserAnswer(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -126,12 +89,7 @@ public class UserAnswerController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 更新用户答案（仅管理员可用）
-     *
-     * @param userAnswerUpdateRequest
-     * @return
-     */
+    @ApiOperation("更新用户答案（仅管理员可用）")
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUserAnswer(@RequestBody UserAnswerUpdateRequest userAnswerUpdateRequest) {
@@ -155,12 +113,7 @@ public class UserAnswerController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 根据 id 获取用户答案（封装类）
-     *
-     * @param id
-     * @return
-     */
+    @ApiOperation("根据 id 获取用户答案（封装类）")
     @GetMapping("/get/vo")
     public BaseResponse<UserAnswerVO> getUserAnswerVOById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -171,12 +124,7 @@ public class UserAnswerController {
         return ResultUtils.success(userAnswerService.getUserAnswerVO(userAnswer, request));
     }
 
-    /**
-     * 分页获取用户答案列表（仅管理员可用）
-     *
-     * @param userAnswerQueryRequest
-     * @return
-     */
+    @ApiOperation("分页获取用户答案列表（仅管理员可用）")
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<UserAnswer>> listUserAnswerByPage(@RequestBody UserAnswerQueryRequest userAnswerQueryRequest) {
@@ -188,13 +136,7 @@ public class UserAnswerController {
         return ResultUtils.success(userAnswerPage);
     }
 
-    /**
-     * 分页获取用户答案列表（封装类）
-     *
-     * @param userAnswerQueryRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("分页获取用户答案列表（封装类）")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<UserAnswerVO>> listUserAnswerVOByPage(@RequestBody UserAnswerQueryRequest userAnswerQueryRequest,
                                                                    HttpServletRequest request) {
@@ -209,13 +151,7 @@ public class UserAnswerController {
         return ResultUtils.success(userAnswerService.getUserAnswerVOPage(userAnswerPage, request));
     }
 
-    /**
-     * 分页获取当前登录用户创建的用户答案列表
-     *
-     * @param userAnswerQueryRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("分页获取当前登录用户创建的用户答案列表")
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<UserAnswerVO>> listMyUserAnswerVOByPage(@RequestBody UserAnswerQueryRequest userAnswerQueryRequest,
                                                                      HttpServletRequest request) {
@@ -234,13 +170,7 @@ public class UserAnswerController {
         return ResultUtils.success(userAnswerService.getUserAnswerVOPage(userAnswerPage, request));
     }
 
-    /**
-     * 编辑用户答案（给用户使用）
-     *
-     * @param userAnswerEditRequest
-     * @param request
-     * @return
-     */
+    @ApiOperation("编辑用户答案（给用户使用）")
     @PostMapping("/edit")
     public BaseResponse<Boolean> editUserAnswer(@RequestBody UserAnswerEditRequest userAnswerEditRequest, HttpServletRequest request) {
         if (userAnswerEditRequest == null || userAnswerEditRequest.getId() <= 0) {
@@ -267,6 +197,4 @@ public class UserAnswerController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
-
-    // endregion
 }

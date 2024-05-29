@@ -9,11 +9,10 @@ import java.util.List;
  * 创建用户答案请求
  *
  * @author 程序员麦麦
- * 
+ *
  */
 @Data
 public class UserAnswerAddRequest implements Serializable {
-
     /**
      * 应用 id
      */

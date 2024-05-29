@@ -4,17 +4,18 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
 import lombok.Data;
 
 /**
  * 用户答题记录
  * @TableName user_answer
  */
-@TableName(value ="user_answer")
+@TableName(value = "user_answer")
 @Data
 public class UserAnswer implements Serializable {
     /**
-     * 
+     * 主键id
      */
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;

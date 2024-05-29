@@ -18,7 +18,7 @@ import java.util.List;
 @Data
 public class UserAnswerVO implements Serializable {
     /**
-     *
+     * 主键id
      */
     private Long id;
 
