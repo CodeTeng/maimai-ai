@@ -44,5 +44,10 @@ public class ScoringResultUpdateRequest implements Serializable {
      */
     private Integer resultScoreRange;
 
+    /**
+     * 应用 id
+     */
+    private Long appId;
+
     private static final long serialVersionUID = 1L;
 }
