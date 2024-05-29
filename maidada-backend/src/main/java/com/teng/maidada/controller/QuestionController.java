@@ -8,6 +8,7 @@ import com.teng.maidada.common.BaseResponse;
 import com.teng.maidada.common.DeleteRequest;
 import com.teng.maidada.common.ErrorCode;
 import com.teng.maidada.common.ResultUtils;
+import com.teng.maidada.constant.PromptConstant;
 import com.teng.maidada.constant.UserConstant;
 import com.teng.maidada.exception.BusinessException;
 import com.teng.maidada.exception.ThrowUtils;
@@ -211,68 +212,51 @@ public class QuestionController {
         return ResultUtils.success(true);
     }
 
-    // AI 生成题目功能
-    private static final String GENERATE_QUESTION_SYSTEM_MESSAGE = "你是一位严谨的出题专家，我会给你如下信息：\n" +
-            "```\n" +
-            "应用名称，\n" +
-            "【【【应用描述】】】，\n" +
-            "应用类别，\n" +
-            "要生成的题目数，\n" +
-            "每个题目的选项数\n" +
-            "```\n" +
-            "\n" +
-            "请你根据上述信息，按照以下步骤来出题：\n" +
-            "1. 要求：题目和选项尽可能地短，题目不要包含序号，每题的选项数以我提供的为主，题目不能重复\n" +
-            "2. 严格按照下面的 json 格式输出题目和选项\n" +
-            "```\n" +
-            "[{\"options\":[{\"value\":\"选项内容\",\"key\":\"A\"},{\"value\":\"\",\"key\":\"B\"}],\"title\":\"题目标题\"}]\n" +
-            "```\n" +
-            "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
-            "3. 检查题目是否包含序号，若包含序号则去除序号\n" +
-            "4. 返回的题目列表格式必须为 JSON 数组";
-
     /**
      * 生成题目的用户消息
-     *
-     * @param app
-     * @param questionNumber
-     * @param optionNumber
-     * @return
      */
     private String getGenerateQuestionUserMessage(App app, int questionNumber, int optionNumber) {
         StringBuilder userMessage = new StringBuilder();
         userMessage.append(app.getAppName()).append("\n");
-        userMessage.append(app.getAppDesc()).append("\n");
-        userMessage.append(AppTypeEnum.getEnumByValue(app.getAppType()).getText() + "类").append("\n");
+        userMessage.append("【【【" + app.getAppDesc() + "】】】").append("\n");
+        userMessage.append(AppTypeEnum.getEnumByValue(app.getAppType()).getText()).append("\n");
         userMessage.append(questionNumber).append("\n");
         userMessage.append(optionNumber);
         return userMessage.toString();
     }
 
+    @ApiOperation("AI生成同步")
     @PostMapping("/ai_generate")
-    public BaseResponse<List<QuestionContentDTO>> aiGenerateQuestion(
-            @RequestBody AiGenerateQuestionRequest aiGenerateQuestionRequest) {
+    public BaseResponse<List<QuestionContentDTO>> aiGenerateQuestion(@RequestBody AiGenerateQuestionRequest aiGenerateQuestionRequest) {
         ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
         // 获取参数
         Long appId = aiGenerateQuestionRequest.getAppId();
-        int questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
-        int optionNumber = aiGenerateQuestionRequest.getOptionNumber();
+        Integer questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
+        Integer optionNumber = aiGenerateQuestionRequest.getOptionNumber();
         // 获取应用信息
         App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(questionNumber == null || questionNumber <= 0, ErrorCode.PARAMS_ERROR, "题目数量必须大于0");
+        ThrowUtils.throwIf(questionNumber > 10, ErrorCode.PARAMS_ERROR, "题目数量一次生成不能超过10个");
+        ThrowUtils.throwIf(optionNumber == null || optionNumber <= 0, ErrorCode.PARAMS_ERROR, "选项数量必须大于0");
+        ThrowUtils.throwIf(optionNumber > 6, ErrorCode.PARAMS_ERROR, "选项数量不能超过6个");
         // 封装 Prompt
         String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
         // AI 生成
-        String result = aiManager.doSyncRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
-        // 截取需要的 JSON 信息
-        int start = result.indexOf("[");
-        int end = result.lastIndexOf("]");
-        String json = result.substring(start, end + 1);
-        List<QuestionContentDTO> questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
+        List<QuestionContentDTO> questionContentDTOList = null;
+        try {
+            String result = aiManager.doSyncStableRequest(PromptConstant.GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
+            // 截取需要的 JSON 信息
+            int start = result.indexOf("[");
+            int end = result.lastIndexOf("]");
+            String json = result.substring(start, end + 1);
+            questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
+        } catch (Exception e) {
+            log.error("生成失败");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "系统异常，生成失败");
+        }
         return ResultUtils.success(questionContentDTOList);
     }
-
-    // endregion
 }
 
 

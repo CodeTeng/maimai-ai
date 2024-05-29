@@ -19,7 +19,6 @@ import java.util.List;
  */
 @Component
 public class AiManager {
-
     @Resource
     private ClientV4 clientV4;
 
@@ -31,10 +30,6 @@ public class AiManager {
 
     /**
      * 同步请求（答案不稳定）
-     *
-     * @param systemMessage
-     * @param userMessage
-     * @return
      */
     public String doSyncUnstableRequest(String systemMessage, String userMessage) {
         return doRequest(systemMessage, userMessage, Boolean.FALSE, UNSTABLE_TEMPERATURE);
@@ -42,10 +37,6 @@ public class AiManager {
 
     /**
      * 同步请求（答案较稳定）
-     *
-     * @param systemMessage
-     * @param userMessage
-     * @return
      */
     public String doSyncStableRequest(String systemMessage, String userMessage) {
         return doRequest(systemMessage, userMessage, Boolean.FALSE, STABLE_TEMPERATURE);
@@ -53,11 +44,6 @@ public class AiManager {
 
     /**
      * 同步请求
-     *
-     * @param systemMessage
-     * @param userMessage
-     * @param temperature
-     * @return
      */
     public String doSyncRequest(String systemMessage, String userMessage, Float temperature) {
         return doRequest(systemMessage, userMessage, Boolean.FALSE, temperature);
@@ -65,12 +51,6 @@ public class AiManager {
 
     /**
      * 通用请求（简化消息传递）
-     *
-     * @param systemMessage
-     * @param userMessage
-     * @param stream
-     * @param temperature
-     * @return
      */
     public String doRequest(String systemMessage, String userMessage, Boolean stream, Float temperature) {
         List<ChatMessage> chatMessageList = new ArrayList<>();
@@ -83,11 +63,6 @@ public class AiManager {
 
     /**
      * 通用请求
-     *
-     * @param messages
-     * @param stream
-     * @param temperature
-     * @return
      */
     public String doRequest(List<ChatMessage> messages, Boolean stream, Float temperature) {
         // 构建请求
