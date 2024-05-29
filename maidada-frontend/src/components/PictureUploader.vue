@@ -50,7 +50,7 @@
 import { IconEdit, IconPlus } from "@arco-design/web-vue/es/icon";
 import { ref, withDefaults, defineProps } from "vue";
 import { uploadFileUsingPost } from "@/api/fileController";
-import { Message } from "@arco-design/web-vue";
+import {Message, RequestOption} from "@arco-design/web-vue";
 
 /**
  * 定义组件属性类型
@@ -78,7 +78,7 @@ if (props.value) {
 }
 
 // 自定义请求
-const customRequest = async (option: any) => {
+const customRequest = async (option: RequestOption) => {
   const { onError, onSuccess, fileItem } = option;
 
   const res: any = await uploadFileUsingPost(
@@ -95,7 +95,6 @@ const customRequest = async (option: any) => {
     };
     props.onChange?.(url);
     onSuccess();
-    console.log(file.value);
   } else {
     Message.error("上传失败，" + res.data.message || "");
     onError(new Error(res.data.message));

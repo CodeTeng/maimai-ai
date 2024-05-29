@@ -11,12 +11,14 @@ declare namespace API {
     appName?: string;
     appType?: number;
     createTime?: string;
+    createUserName?: string;
     id?: number;
     isDelete?: number;
     reviewMessage?: string;
     reviewStatus?: number;
     reviewTime?: string;
     reviewerId?: number;
+    reviewerUserName?: string;
     scoringStrategy?: number;
     updateTime?: string;
     userId?: number;
@@ -41,7 +43,6 @@ declare namespace API {
 
   type AppQueryRequest = {
     appDesc?: string;
-    appIcon?: string;
     appName?: string;
     appType?: number;
     current?: number;
@@ -557,6 +558,7 @@ declare namespace API {
   };
 
   type QuestionEditRequest = {
+    appId?: number;
     id?: number;
     questionContent?: QuestionContentDTO[];
   };
@@ -574,6 +576,7 @@ declare namespace API {
   };
 
   type QuestionUpdateRequest = {
+    appId?: number;
     id?: number;
     questionContent?: QuestionContentDTO[];
   };
@@ -619,6 +622,7 @@ declare namespace API {
 
   type ScoringResultEditRequest = {
     id?: number;
+    appId?: number;
     resultDesc?: string;
     resultName?: string;
     resultPicture?: string;
@@ -645,6 +649,7 @@ declare namespace API {
 
   type ScoringResultUpdateRequest = {
     id?: number;
+    appId?: number;
     resultDesc?: string;
     resultName?: string;
     resultPicture?: string;
@@ -664,6 +669,9 @@ declare namespace API {
     updateTime?: string;
     user?: UserVO;
     userId?: number;
+    appName?: string;
+    appType?: number;
+    scoringStrategy?: number;
   };
 
   type uploadFileUsingPOSTParams = {
