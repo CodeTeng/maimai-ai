@@ -1,6 +1,7 @@
 package com.teng.maidada.config;
 
 import com.zhipu.oapi.ClientV4;
+import com.zhipu.oapi.core.httpclient.ApacheHttpClientTransport;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,6 @@ public class AiConfig {
     /**
      * apiKey，需要从开放平台获取
      */
-
     private String apiKey;
 
     @Bean
