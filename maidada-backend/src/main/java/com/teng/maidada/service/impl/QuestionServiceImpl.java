@@ -1,12 +1,16 @@
 package com.teng.maidada.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.teng.maidada.common.ErrorCode;
 import com.teng.maidada.constant.CommonConstant;
+import com.teng.maidada.constant.PromptConstant;
+import com.teng.maidada.exception.BusinessException;
 import com.teng.maidada.exception.ThrowUtils;
+import com.teng.maidada.manager.AiManager;
 import com.teng.maidada.mapper.QuestionMapper;
 import com.teng.maidada.model.dto.question.QuestionContentDTO;
 import com.teng.maidada.model.dto.question.QuestionQueryRequest;
@@ -20,16 +24,22 @@ import com.teng.maidada.service.AppService;
 import com.teng.maidada.service.QuestionService;
 import com.teng.maidada.service.UserService;
 import com.teng.maidada.utils.SqlUtils;
+import com.zhipu.oapi.service.v4.model.ModelData;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +57,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private AppService appService;
+
+    @Resource
+    private AiManager aiManager;
 
     /**
      * 校验数据
@@ -187,6 +200,54 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 }
             });
         });
+    }
+
+    @Override
+    public SseEmitter aiGenerateQuestionSSE(String userMessage) {
+        SseEmitter emitter = new SseEmitter(0L);
+        AtomicInteger flag = new AtomicInteger(0);
+        StringBuilder contentBuilder = new StringBuilder();
+        try {
+            // 流式返回
+            Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(PromptConstant.GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
+            // 异步线程执行
+            modelDataFlowable
+                    .observeOn(Schedulers.io())
+                    .map(modelData -> modelData.getChoices().get(0).getDelta().getContent())
+                    .map(content -> content.replaceAll("\\s", ""))
+                    .filter(StringUtils::isNotBlank)
+                    .flatMap(message -> {
+                        // 将字符串转换为 List<Character>
+                        List<Character> characterList = new ArrayList<>();
+                        for (char c : message.toCharArray()) {
+                            characterList.add(c);
+                        }
+                        return Flowable.fromIterable(characterList);
+                    })
+                    .doOnNext(c -> {
+                        // 识别第一个 { 表示开始 AI 传输 JSON 数据，打开 flag 开始拼接 JSON 数组
+                        if (c == '{') {
+                            flag.addAndGet(1);
+                        }
+                        if (flag.get() > 0) {
+                            contentBuilder.append(c);
+                        }
+                        if (c == '}') {
+                            flag.addAndGet(-1);
+                            if (flag.get() == 0) {
+                                // 累计单套题目满足 JSON 格式后， SSE 推送前端
+                                // SSE 需要压缩成当行 JSON， SSE 无法识别换行
+                                emitter.send(JSONUtil.toJsonStr(contentBuilder.toString()));
+                                // 清空 StringBuilder
+                                contentBuilder.setLength(0);
+                            }
+                        }
+                    }).doOnComplete(emitter::complete).subscribe();
+        } catch (Exception e) {
+            log.error("生成失败");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "系统异常，生成失败");
+        }
+        return emitter;
     }
 
 }

@@ -22,16 +22,23 @@ import com.teng.maidada.model.vo.QuestionVO;
 import com.teng.maidada.service.AppService;
 import com.teng.maidada.service.QuestionService;
 import com.teng.maidada.service.UserService;
+import com.zhipu.oapi.service.v4.model.ModelData;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 题目接口
@@ -227,6 +234,7 @@ public class QuestionController {
 
     @ApiOperation("AI生成同步")
     @PostMapping("/ai_generate")
+    @Deprecated
     public BaseResponse<List<QuestionContentDTO>> aiGenerateQuestion(@RequestBody AiGenerateQuestionRequest aiGenerateQuestionRequest) {
         ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
         // 获取参数
@@ -256,6 +264,27 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "系统异常，生成失败");
         }
         return ResultUtils.success(questionContentDTOList);
+    }
+
+    @ApiOperation("AI生成 - SSE")
+    @GetMapping("/ai_generate/sse")
+    public SseEmitter aiGenerateQuestionSSE(AiGenerateQuestionRequest aiGenerateQuestionRequest) {
+        ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
+        // 获取参数
+        Long appId = aiGenerateQuestionRequest.getAppId();
+        Integer questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
+        Integer optionNumber = aiGenerateQuestionRequest.getOptionNumber();
+        // 获取应用信息
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(questionNumber == null || questionNumber <= 0, ErrorCode.PARAMS_ERROR, "题目数量必须大于0");
+        ThrowUtils.throwIf(questionNumber > 10, ErrorCode.PARAMS_ERROR, "题目数量一次生成不能超过10个");
+        ThrowUtils.throwIf(optionNumber == null || optionNumber <= 0, ErrorCode.PARAMS_ERROR, "选项数量必须大于0");
+        ThrowUtils.throwIf(optionNumber > 6, ErrorCode.PARAMS_ERROR, "选项数量不能超过6个");
+        // 封装 Prompt
+        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+        // AI 生成
+        return questionService.aiGenerateQuestionSSE(userMessage);
     }
 }
 

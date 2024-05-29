@@ -7,6 +7,7 @@ import com.teng.maidada.model.dto.question.QuestionContentDTO;
 import com.teng.maidada.model.dto.question.QuestionQueryRequest;
 import com.teng.maidada.model.entity.Question;
 import com.teng.maidada.model.vo.QuestionVO;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -58,4 +59,11 @@ public interface QuestionService extends IService<Question> {
      * @param appId
      */
     void validaQuestionContent(List<QuestionContentDTO> questionContentDTOs, Long appId);
+
+    /**
+     * AI 生成 SSE
+     * @param userMessage
+     * @return
+     */
+    SseEmitter aiGenerateQuestionSSE(String userMessage);
 }
