@@ -11,16 +11,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 public @interface ScoringStrategyConfig {
-
     /**
-     * 应用类型
-     * @return
+     * 应用类型 0 - 得分类  1 - 测评类
      */
     int appType();
 
     /**
-     * 评分策略
-     * @return
+     * 评分策略 0 - 自定义  1 - AI
      */
     int scoringStrategy();
 }

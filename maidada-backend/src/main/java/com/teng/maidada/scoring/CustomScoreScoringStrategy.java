@@ -19,11 +19,9 @@ import java.util.Optional;
  * 自定义打分类应用评分策略
  *
  * @author 程序员麦麦
- * 
  */
 @ScoringStrategyConfig(appType = 0, scoringStrategy = 0)
 public class CustomScoreScoringStrategy implements ScoringStrategy {
-
     @Resource
     private QuestionService questionService;
 
@@ -38,16 +36,13 @@ public class CustomScoreScoringStrategy implements ScoringStrategy {
                 Wrappers.lambdaQuery(Question.class).eq(Question::getAppId, appId)
         );
         List<ScoringResult> scoringResultList = scoringResultService.list(
-                Wrappers.lambdaQuery(ScoringResult.class)
-                        .eq(ScoringResult::getAppId, appId)
-                        .orderByDesc(ScoringResult::getResultScoreRange)
+                Wrappers.lambdaQuery(ScoringResult.class).eq(ScoringResult::getAppId, appId).orderByDesc(ScoringResult::getResultScoreRange)
         );
 
         // 2. 统计用户的总得分
         int totalScore = 0;
         QuestionVO questionVO = QuestionVO.objToVo(question);
         List<QuestionContentDTO> questionContent = questionVO.getQuestionContent();
-
         // 遍历题目列表
         for (QuestionContentDTO questionContentDTO : questionContent) {
             // 遍历答案列表

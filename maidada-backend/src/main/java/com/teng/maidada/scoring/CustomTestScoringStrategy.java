@@ -20,11 +20,9 @@ import java.util.Map;
  * 自定义测评类应用评分策略
  *
  * @author 程序员麦麦
- * 
  */
 @ScoringStrategyConfig(appType = 1, scoringStrategy = 0)
 public class CustomTestScoringStrategy implements ScoringStrategy {
-
     @Resource
     private QuestionService questionService;
 
@@ -35,18 +33,14 @@ public class CustomTestScoringStrategy implements ScoringStrategy {
     public UserAnswer doScore(List<String> choices, App app) throws Exception {
         Long appId = app.getId();
         // 1. 根据 id 查询到题目和题目结果信息
-        Question question = questionService.getOne(
-                Wrappers.lambdaQuery(Question.class).eq(Question::getAppId, appId)
-        );
+        Question question = questionService.getOne(Wrappers.lambdaQuery(Question.class).eq(Question::getAppId, appId));
         List<ScoringResult> scoringResultList = scoringResultService.list(
-                Wrappers.lambdaQuery(ScoringResult.class)
-                        .eq(ScoringResult::getAppId, appId)
+                Wrappers.lambdaQuery(ScoringResult.class).eq(ScoringResult::getAppId, appId)
         );
 
         // 2. 统计用户每个选择对应的属性个数，如 I = 10 个，E = 5 个
         // 初始化一个Map，用于存储每个选项的计数
         Map<String, Integer> optionCount = new HashMap<>();
-
         QuestionVO questionVO = QuestionVO.objToVo(question);
         List<QuestionContentDTO> questionContent = questionVO.getQuestionContent();
 

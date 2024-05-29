@@ -14,19 +14,16 @@ import java.util.List;
  */
 @Service
 public class ScoringStrategyExecutor {
-
     // 策略列表
     @Resource
     private List<ScoringStrategy> scoringStrategyList;
 
-
     /**
      * 评分
      *
-     * @param choiceList
-     * @param app
-     * @return
-     * @throws Exception
+     * @param choiceList 用户的答案列表
+     * @param app 应用信息
+     * @return 用户答题记录
      */
     public UserAnswer doScore(List<String> choiceList, App app) throws Exception {
         Integer appType = app.getAppType();
