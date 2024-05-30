@@ -756,6 +756,7 @@ declare namespace API {
 
   type UserAnswerVO = {
     appId?: number;
+    appName?: string;
     appType?: number;
     choices?: string[];
     createTime?: string;

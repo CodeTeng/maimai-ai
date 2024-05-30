@@ -5,7 +5,7 @@
         <a-col flex="auto" class="content-wrapper">
           <h2>{{ data.resultName }}</h2>
           <p>结果描述：{{ data.resultDesc }}</p>
-          <p>结果 id：{{ data.resultId }}</p>
+          <p v-if="data.resultId">结果 id：{{ data.resultId }}</p>
           <p>结果得分：{{ data.resultScore }}</p>
           <p>我的答案：{{ data.choices }}</p>
           <p>应用 id：{{ data.appId }}</p>
@@ -36,7 +36,11 @@
           </a-space>
         </a-col>
         <a-col flex="320px">
-          <a-image width="100%" :src="data.userAnswerIcon" />
+          <a-image
+            v-if="data.resultPicture"
+            width="100%"
+            :src="data.resultPicture"
+          />
         </a-col>
       </a-row>
     </a-card>
@@ -45,7 +49,6 @@
 
 <script setup lang="ts">
 import { defineProps, ref, watchEffect, withDefaults } from "vue";
-import API from "@/api";
 import { getUserAnswerVoByIdUsingGet } from "@/api/userAnswerController";
 import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
