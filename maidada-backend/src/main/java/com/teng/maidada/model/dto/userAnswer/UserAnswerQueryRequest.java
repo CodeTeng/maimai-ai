@@ -15,9 +15,8 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class UserAnswerQueryRequest extends PageRequest implements Serializable {
-
     /**
-     *
+     * 主键id
      */
     private Long id;
 

@@ -138,15 +138,13 @@ public class UserAnswerController {
 
     @ApiOperation("分页获取用户答案列表（封装类）")
     @PostMapping("/list/page/vo")
-    public BaseResponse<Page<UserAnswerVO>> listUserAnswerVOByPage(@RequestBody UserAnswerQueryRequest userAnswerQueryRequest,
-                                                                   HttpServletRequest request) {
+    public BaseResponse<Page<UserAnswerVO>> listUserAnswerVOByPage(@RequestBody UserAnswerQueryRequest userAnswerQueryRequest, HttpServletRequest request) {
         long current = userAnswerQueryRequest.getCurrent();
         long size = userAnswerQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 查询数据库
-        Page<UserAnswer> userAnswerPage = userAnswerService.page(new Page<>(current, size),
-                userAnswerService.getQueryWrapper(userAnswerQueryRequest));
+        Page<UserAnswer> userAnswerPage = userAnswerService.page(new Page<>(current, size), userAnswerService.getQueryWrapper(userAnswerQueryRequest));
         // 获取封装类
         return ResultUtils.success(userAnswerService.getUserAnswerVOPage(userAnswerPage, request));
     }

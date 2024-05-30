@@ -13,7 +13,6 @@ import java.util.List;
  */
 @Data
 public class UserAnswerUpdateRequest implements Serializable {
-
     /**
      * id
      */

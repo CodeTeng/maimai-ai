@@ -170,10 +170,6 @@ public class UserAnswerServiceImpl extends ServiceImpl<UserAnswerMapper, UserAns
 
     /**
      * 分页获取用户答案封装
-     *
-     * @param userAnswerPage
-     * @param request
-     * @return
      */
     @Override
     public Page<UserAnswerVO> getUserAnswerVOPage(Page<UserAnswer> userAnswerPage, HttpServletRequest request) {
@@ -183,27 +179,26 @@ public class UserAnswerServiceImpl extends ServiceImpl<UserAnswerMapper, UserAns
             return userAnswerVOPage;
         }
         // 对象列表 => 封装对象列表
-        List<UserAnswerVO> userAnswerVOList = userAnswerList.stream().map(userAnswer -> {
-            return UserAnswerVO.objToVo(userAnswer);
-        }).collect(Collectors.toList());
+        List<UserAnswerVO> userAnswerVOList = userAnswerList.stream().map(UserAnswerVO::objToVo).collect(Collectors.toList());
 
         // 可以根据需要为封装对象补充值，不需要的内容可以删除
-        // region 可选
-        // 1. 关联查询用户信息
+        // 关联查询用户信息
         Set<Long> userIdSet = userAnswerList.stream().map(UserAnswer::getUserId).collect(Collectors.toSet());
-        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
-                .collect(Collectors.groupingBy(User::getId));
+        Map<Long, User> userMap = userService.listByIds(userIdSet).stream().collect(Collectors.toMap(User::getId, u -> u));
+        // 关联查询应用信息
+        Set<Long> appIdSet = userAnswerList.stream().map(UserAnswer::getAppId).collect(Collectors.toSet());
+        Map<Long, App> appMap = appService.listByIds(appIdSet).stream().collect(Collectors.toMap(App::getId, a -> a));
         // 填充信息
         userAnswerVOList.forEach(userAnswerVO -> {
             Long userId = userAnswerVO.getUserId();
-            User user = null;
-            if (userIdUserListMap.containsKey(userId)) {
-                user = userIdUserListMap.get(userId).get(0);
-            }
+            User user = userMap.getOrDefault(userId, null);
+            Long appId = userAnswerVO.getAppId();
+            App app = appMap.getOrDefault(appId, null);
             userAnswerVO.setUser(userService.getUserVO(user));
+            if (app != null) {
+                userAnswerVO.setAppName(app.getAppName());
+            }
         });
-        // endregion
-
         userAnswerVOPage.setRecords(userAnswerVOList);
         return userAnswerVOPage;
     }

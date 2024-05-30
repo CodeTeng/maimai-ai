@@ -28,6 +28,11 @@ public class UserAnswerVO implements Serializable {
     private Long appId;
 
     /**
+     * 应用名称
+     */
+    private String appName;
+
+    /**
      * 应用类型（0-得分类，1-角色测评类）
      */
     private Integer appType;
