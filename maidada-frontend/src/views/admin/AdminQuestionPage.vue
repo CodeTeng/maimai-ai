@@ -28,6 +28,7 @@
   <a-table
     :columns="columns"
     :data="dataList"
+    :scroll="scroll"
     :pagination="{
       showTotal: true,
       pageSize: searchParams.pageSize,
@@ -52,7 +53,9 @@
     </template>
     <template #optional="{ record }">
       <a-space>
-        <a-button status="danger" @click="doDelete(record)">删除</a-button>
+        <a-popconfirm content="你确定要删除吗?" @ok="doDelete(record)">
+          <a-button status="danger">删除</a-button>
+        </a-popconfirm>
       </a-space>
     </template>
   </a-table>
@@ -73,7 +76,7 @@ const formSearchParams = ref<API.QuestionQueryRequest>({});
 // 初始化搜索条件（不应该被修改）
 const initSearchParams = {
   current: 1,
-  pageSize: 10,
+  pageSize: 5,
 };
 
 const searchParams = ref<API.QuestionQueryRequest>({
@@ -142,38 +145,68 @@ watchEffect(() => {
   loadData();
 });
 
+const scroll = {
+  x: 2000,
+};
+
 // 表格列配置
 const columns = [
   {
     title: "id",
     dataIndex: "id",
+    ellipsis: true,
+    tooltip: true,
+    width: 100,
+    fixed: "left",
+    align: "center",
   },
   {
     title: "题目内容",
     dataIndex: "questionContent",
     slotName: "questionContent",
+    width: 950,
+    align: "center",
   },
   {
     title: "应用 id",
     dataIndex: "appId",
+    ellipsis: true,
+    tooltip: true,
+    width: 100,
+    align: "center",
   },
   {
     title: "用户 id",
     dataIndex: "userId",
+    ellipsis: true,
+    tooltip: true,
+    width: 100,
+    align: "center",
   },
   {
     title: "创建时间",
     dataIndex: "createTime",
     slotName: "createTime",
+    width: 200,
+    align: "center",
+    sortable: {
+      sortDirections: ["ascend", "descend"],
+    },
   },
   {
     title: "更新时间",
     dataIndex: "updateTime",
     slotName: "updateTime",
+    width: 200,
+    align: "center",
+    sortable: {
+      sortDirections: ["ascend", "descend"],
+    },
   },
   {
     title: "操作",
     slotName: "optional",
+    align: "center",
   },
 ];
 </script>
