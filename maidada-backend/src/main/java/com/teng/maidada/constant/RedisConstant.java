@@ -6,5 +6,13 @@ package com.teng.maidada.constant;
  * @date: 2024/5/30 14:23
  */
 public interface RedisConstant {
-    String AI_ANSWER_LOCK = "AI_ANSWER_LOCK";
+    /**
+     * AI 测评类锁
+     */
+    String AI_TEST_ANSWER_LOCK = "AI_ANSWER_LOCK";
+
+    /**
+     * AI 得分类类锁
+     */
+    String AI_SCORE_ANSWER_LOCK = "AI_ANSWER_LOCK";
 }

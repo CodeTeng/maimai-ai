@@ -80,7 +80,7 @@ public class AiTestScoringStrategy implements ScoringStrategy {
         }
 
         // 锁要细粒度
-        RLock lock = redissonClient.getLock(RedisConstant.AI_ANSWER_LOCK + cacheKey);
+        RLock lock = redissonClient.getLock(RedisConstant.AI_TEST_ANSWER_LOCK + cacheKey);
         try {
             // 竞争分布式锁 等待 3秒 15秒后自动释放
             if (!lock.tryLock(3, 15, TimeUnit.SECONDS)) {
@@ -118,7 +118,7 @@ public class AiTestScoringStrategy implements ScoringStrategy {
         } finally {
             if (lock != null && lock.isLocked()) {
                 if (lock.isHeldByCurrentThread()) {
-                    log.info("解锁成功");
+                    log.info(Thread.currentThread().getName() + " 解锁成功");
                     lock.unlock();
                 }
             }

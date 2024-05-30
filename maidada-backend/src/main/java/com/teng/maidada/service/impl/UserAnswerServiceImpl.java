@@ -241,10 +241,10 @@ public class UserAnswerServiceImpl extends ServiceImpl<UserAnswerMapper, UserAns
             userAnswerWithResult.setId(newUserAnswerId);
             this.updateById(userAnswerWithResult);
         } catch (Exception e) {
+            log.error("评分错误");
             e.printStackTrace();
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "评分错误");
         }
         return newUserAnswerId;
     }
-
 }
