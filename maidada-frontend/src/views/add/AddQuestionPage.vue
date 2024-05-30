@@ -1,5 +1,4 @@
 <template>
-
   <div id="addQuestionPage">
     <h2 style="margin-bottom: 32px">设置题目</h2>
     <a-form
@@ -93,7 +92,12 @@
         </div>
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 120px">
+        <a-button
+          type="primary"
+          :disabled="questionContent.length === 0"
+          html-type="submit"
+          style="width: 120px"
+        >
           提交
         </a-button>
       </a-form-item>

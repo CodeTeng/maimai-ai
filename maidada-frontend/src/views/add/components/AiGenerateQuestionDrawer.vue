@@ -1,5 +1,7 @@
 <template>
-  <a-button type="outline" @click="handleClick">AI 生成题目</a-button>
+  <a-button type="outline" @click="handleClick" :loading="!submitting"
+    >AI 生成题目</a-button
+  >
   <a-spin
     tip="生成题目中"
     :style="{ display: submitting ? 'none' : 'block' }"
@@ -33,7 +35,7 @@
           :rules="[{ required: true, message: '题目数量是必填项' }]"
         >
           <a-input-number
-            min="0"
+            min="1"
             max="10"
             v-model="form.questionNumber"
             placeholder="请输入题目数量"
@@ -46,7 +48,7 @@
           :rules="[{ required: true, message: '选项数量是必填项' }]"
         >
           <a-input-number
-            min="0"
+            min="1"
             max="6"
             v-model="form.optionNumber"
             placeholder="请输入选项数量"
@@ -78,7 +80,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const form = reactive({
-  optionNumber: 2,
+  optionNumber: 4,
   questionNumber: 10,
 } as API.AiGenerateQuestionRequest);
 
