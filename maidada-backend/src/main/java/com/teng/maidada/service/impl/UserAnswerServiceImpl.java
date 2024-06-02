@@ -29,6 +29,7 @@ import com.teng.maidada.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,10 +74,12 @@ public class UserAnswerServiceImpl extends ServiceImpl<UserAnswerMapper, UserAns
         // 从对象中取值
         Long appId = userAnswer.getAppId();
         String choices = userAnswer.getChoices();
+        Long id = userAnswer.getId();
         // 创建数据时，参数不能为空
         if (add) {
             // 补充校验规则
             ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 非法");
+            ThrowUtils.throwIf(id == null || id <= 0, ErrorCode.PARAMS_ERROR, "id 非法");
             ThrowUtils.throwIf(StringUtils.isBlank(choices), ErrorCode.PARAMS_ERROR, "用户选择不能为空");
         }
         // 修改数据时，有参数则校验
@@ -225,8 +228,12 @@ public class UserAnswerServiceImpl extends ServiceImpl<UserAnswerMapper, UserAns
         User loginUser = userService.getLoginUser(request);
         userAnswer.setUserId(loginUser.getId());
         // 写入数据库
-        boolean result = this.save(userAnswer);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        try {
+            boolean result = this.save(userAnswer);
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        } catch (DuplicateKeyException e) {
+            // ignore error
+        }
         // 返回新写入的数据 id
         long newUserAnswerId = userAnswer.getId();
         // 调用评分模块

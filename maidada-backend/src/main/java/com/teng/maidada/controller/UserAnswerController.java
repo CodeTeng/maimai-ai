@@ -1,5 +1,6 @@
 package com.teng.maidada.controller;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.teng.maidada.annotation.AuthCheck;
@@ -194,5 +195,11 @@ public class UserAnswerController {
         boolean result = userAnswerService.updateById(userAnswer);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
+    }
+
+    @ApiOperation("生成用户答案唯一id")
+    @GetMapping("/generate/id")
+    public BaseResponse<Long> generateUserAnswerId() {
+        return ResultUtils.success(IdUtil.getSnowflakeNextId());
     }
 }
