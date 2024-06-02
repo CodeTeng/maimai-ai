@@ -288,7 +288,7 @@ const handleOk = async () => {
   } else {
     message.error("修改失败");
   }
-  visible.value = false;
+  handleCancel();
 };
 const handleCancel = () => {
   form.value = {};
@@ -316,7 +316,7 @@ const rejectForm = ref({
 });
 const handleRejectCancel = () => {
   rejectForm.value.id = undefined;
-  rejectForm.value.reviewStatus = REVIEW_STATUS_ENUM.REJECT
+  rejectForm.value.reviewStatus = REVIEW_STATUS_ENUM.REJECT;
   rejectForm.value.reviewMessage = "";
   rejectFormRef.value.clearValidate();
   rejectVisible.value = false;

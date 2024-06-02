@@ -256,7 +256,7 @@ const handleOk = async () => {
   } else {
     message.error("修改失败");
   }
-  visible.value = false;
+  handleCancel();
 };
 const handleCancel = () => {
   form.value = {};

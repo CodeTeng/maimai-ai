@@ -8,7 +8,7 @@ import * as postController from './postController';
 import * as postFavourController from './postFavourController';
 import * as postThumbController from './postThumbController';
 import * as timujiekou from './questionController';
-import * as scoringResultController from './scoringResultController';
+import * as pingfenjieguojiekou from './scoringResultController';
 import * as userController from './userController';
 import * as yonghudaanjiekou from './userAnswerController';
 export default {
@@ -18,7 +18,7 @@ export default {
   postFavourController,
   postThumbController,
   timujiekou,
-  scoringResultController,
+  pingfenjieguojiekou,
   userController,
   yonghudaanjiekou,
 };

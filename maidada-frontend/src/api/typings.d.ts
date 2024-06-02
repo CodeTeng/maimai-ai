@@ -5,6 +5,12 @@ declare namespace API {
     questionNumber?: number;
   };
 
+  type aiGenerateQuestionSSEUsingGETParams = {
+    appId?: number;
+    optionNumber?: number;
+    questionNumber?: number;
+  };
+
   type App = {
     appDesc?: string;
     appIcon?: string;
@@ -621,8 +627,8 @@ declare namespace API {
   };
 
   type ScoringResultEditRequest = {
-    id?: number;
     appId?: number;
+    id?: number;
     resultDesc?: string;
     resultName?: string;
     resultPicture?: string;
@@ -648,8 +654,8 @@ declare namespace API {
   };
 
   type ScoringResultUpdateRequest = {
-    id?: number;
     appId?: number;
+    id?: number;
     resultDesc?: string;
     resultName?: string;
     resultPicture?: string;
@@ -659,6 +665,8 @@ declare namespace API {
 
   type ScoringResultVO = {
     appId?: number;
+    appName?: string;
+    appType?: number;
     createTime?: string;
     id?: number;
     resultDesc?: string;
@@ -666,12 +674,14 @@ declare namespace API {
     resultPicture?: string;
     resultProp?: string[];
     resultScoreRange?: number;
+    scoringStrategy?: number;
     updateTime?: string;
     user?: UserVO;
     userId?: number;
-    appName?: string;
-    appType?: number;
-    scoringStrategy?: number;
+  };
+
+  type SseEmitter = {
+    timeout?: number;
   };
 
   type uploadFileUsingPOSTParams = {
@@ -720,6 +730,7 @@ declare namespace API {
   type UserAnswerAddRequest = {
     appId?: number;
     choices?: string[];
+    id?: number;
   };
 
   type UserAnswerEditRequest = {
