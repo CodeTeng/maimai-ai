@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.teng.maidada.model.dto.question.QuestionContentDTO;
 import com.teng.maidada.model.dto.question.QuestionQueryRequest;
 import com.teng.maidada.model.entity.Question;
+import com.teng.maidada.model.entity.User;
 import com.teng.maidada.model.vo.QuestionVO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -63,7 +64,8 @@ public interface QuestionService extends IService<Question> {
     /**
      * AI 生成 SSE
      * @param userMessage
+     * @param loginUser
      * @return
      */
-    SseEmitter aiGenerateQuestionSSE(String userMessage);
+    SseEmitter aiGenerateQuestionSSE(String userMessage, User loginUser);
 }

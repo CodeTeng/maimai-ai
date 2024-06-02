@@ -18,6 +18,7 @@ import com.teng.maidada.model.entity.App;
 import com.teng.maidada.model.entity.Question;
 import com.teng.maidada.model.entity.User;
 import com.teng.maidada.model.enums.AppTypeEnum;
+import com.teng.maidada.model.enums.UserRoleEnum;
 import com.teng.maidada.model.vo.QuestionVO;
 import com.teng.maidada.model.vo.UserVO;
 import com.teng.maidada.service.AppService;
@@ -26,6 +27,7 @@ import com.teng.maidada.service.UserService;
 import com.teng.maidada.utils.SqlUtils;
 import com.zhipu.oapi.service.v4.model.ModelData;
 import io.reactivex.Flowable;
+import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -60,6 +62,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private AiManager aiManager;
+
+    @Resource
+    private Scheduler vipScheduler;
 
     /**
      * 校验数据
@@ -203,16 +208,21 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     }
 
     @Override
-    public SseEmitter aiGenerateQuestionSSE(String userMessage) {
+    public SseEmitter aiGenerateQuestionSSE(String userMessage, User loginUser) {
         SseEmitter emitter = new SseEmitter(0L);
         AtomicInteger flag = new AtomicInteger(0);
         StringBuilder contentBuilder = new StringBuilder();
+        Scheduler scheduler = Schedulers.io();
+        // 这里可以修改为 VIP
+        if (loginUser.getUserRole().equals(UserRoleEnum.ADMIN.getValue())) {
+            scheduler = vipScheduler;
+        }
         try {
             // 流式返回
             Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(PromptConstant.GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
             // 异步线程执行
             modelDataFlowable
-                    .observeOn(Schedulers.io())
+                    .observeOn(scheduler)
                     .map(modelData -> modelData.getChoices().get(0).getDelta().getContent())
                     .map(content -> content.replaceAll("\\s", ""))
                     .filter(StringUtils::isNotBlank)
