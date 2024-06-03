@@ -1,6 +1,6 @@
 <template>
   <div id="doAnswerPage">
-    <a-card>
+    <a-card v-if="questionContent.length !== 0">
       <h1>{{ app.appName }}</h1>
       <p>{{ app.appDesc }}</p>
       <h2 style="margin-bottom: 16px">
@@ -41,6 +41,11 @@
         </a-space>
       </div>
     </a-card>
+    <a-card v-else>
+      <h1>{{ app.appName }}</h1>
+      <p>{{ app.appDesc }}</p>
+      <a-empty description="暂无题目" />
+    </a-card>
   </div>
 </template>
 
@@ -53,7 +58,6 @@ import {
   watchEffect,
   withDefaults,
 } from "vue";
-import API from "@/api";
 import { useRouter } from "vue-router";
 import { listQuestionVoByPageUsingPost } from "@/api/questionController";
 import message from "@arco-design/web-vue/es/message";
