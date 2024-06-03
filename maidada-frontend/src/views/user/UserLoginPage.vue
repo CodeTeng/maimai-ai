@@ -8,10 +8,27 @@
       auto-label-width
       @submit="handleSubmit"
     >
-      <a-form-item field="userAccount" label="账号">
+      <a-form-item
+        field="userAccount"
+        label="账号"
+        :rules="[
+          { required: true, message: '请输入账号' },
+          { minLength: 4, message: '账号必须超过 4 位' },
+        ]"
+        :validate-trigger="['blur']"
+      >
         <a-input v-model="form.userAccount" placeholder="请输入账号" />
       </a-form-item>
-      <a-form-item field="userPassword" tooltip="密码不小于 8 位" label="密码">
+      <a-form-item
+        field="userPassword"
+        tooltip="密码不小于 8 位"
+        label="密码"
+        :rules="[
+          { required: true, message: '请输入密码' },
+          { minLength: 8, message: '密码必须超过 8 位' },
+        ]"
+        :validate-trigger="['blur']"
+      >
         <a-input-password
           v-model="form.userPassword"
           placeholder="请输入密码"
@@ -37,8 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
-import API from "@/api";
+import { reactive, ref } from "vue";
 import { userLoginUsingPost } from "@/api/userController";
 import { useLoginUserStore } from "@/store/userStore";
 import message from "@arco-design/web-vue/es/message";
@@ -55,7 +71,14 @@ const form = reactive({
 /**
  * 提交
  */
-const handleSubmit = async () => {
+const handleSubmit = async ({ errors }) => {
+  if (errors !== undefined) {
+    if (
+      errors.userAccount.isRequiredError ||
+      errors.userPassword.isRequiredError
+    )
+      return;
+  }
   const res = await userLoginUsingPost(form);
   if (res.data.code === 0) {
     await loginUserStore.fetchLoginUser();
