@@ -18,6 +18,7 @@ import DoAnswerPage from "@/views/answer/DoAnswerPage.vue";
 import AnswerResultPage from "@/views/answer/AnswerResultPage.vue";
 import MyAnswerPage from "@/views/answer/MyAnswerPage.vue";
 import AppStatisticPage from "@/views/app/AppStatisticPage.vue";
+import MyAppPage from "@/views/app/MyAppPage.vue";
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -29,6 +30,11 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/add/app",
     name: "创建应用",
     component: AddAppPage,
+  },
+  {
+    path: "/my/app",
+    name: "我的应用",
+    component: MyAppPage,
   },
   {
     path: "/add/app/:id",
