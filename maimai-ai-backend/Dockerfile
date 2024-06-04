@@ -11,4 +11,4 @@ COPY src ./src
 RUN mvn package -DskipTests
 
 # Run the web service on container startup.
-CMD ["java","-jar","/app/target/maidada-backend-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
+CMD ["java","-jar","/app/target/maimai-ai-backend-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]

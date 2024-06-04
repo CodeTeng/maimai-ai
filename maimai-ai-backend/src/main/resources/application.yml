@@ -2,7 +2,7 @@
 # @author 程序员麦麦
 spring:
   application:
-    name: maidada-backend
+    name: maimai-ai-backend
   # 默认 dev 环境
   profiles:
     active: dev
