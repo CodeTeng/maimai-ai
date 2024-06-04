@@ -1,83 +1,97 @@
-# SpringBoot 项目初始模板
+# AI 智能应用平台
 
 > 作者：程序员麦麦
 
-基于 Java SpringBoot 的项目初始模板，整合了常用框架和主流业务的示例代码。
+**语雀知识库：https://www.yuque.com/dashboard/books**
 
-只需 1 分钟即可完成内容网站的后端！！！大家还可以在此基础上快速开发自己的项目。
+基于 SpringBoot + Redis + Caffeine + CharGLM AI + RxJava + SSE + Vue + Arco Design + Pinia 的 AI 智能应用平台。
+用户可创建属于自己的应用并基于 AI 快速生成该应用的题目；经管理员审核后，可在主页在线答题并基于多种评分算法或 AI
+得到回答总结和得分，并且可以分享应用给其它用户；
+管理员还可集中化管理应用、题目、用户、题目答案等信息，并进行相应的统计分析。
 
-[toc]
+## 功能整理
 
-## 模板特点
+- 用户模块
+    - 登录
+    - 注册
+    - 个人信息修改与查看
+    - 修改密码
+    - 管理用户 - 增删改查（管理员）
+- 应用模块
+    - 创建应用（名称、描述、图片、类型）
+    - 修改应用
+    - 删除应用
+    - 查看应用列表
+    - 查看应用详情
+    - 查看自己创建的应用
+    - 审核发布与下架（管理员）
+    - 管理应用 - 增删改查（管理员）
+    - 应用分享（扫码查看）
+- 题目模块
+    - 创建题目（包含题目选型得分设置）
+    - 修改题目
+    - 删除题目
+    - 管理题目 - 增删改查（管理员可用）
+    - AI 生成题目
+- 评分模块
+    - 创建评分结果
+    - 修改评分结果
+    - 删除评分结果
+    - 多种评分策略（策略模式）
+        - 自定义规则评分 - 测评类
+        - 自定义规则评分 - 打分类
+        - AI 评分
+    - 管理评分结果 - 增删改查（管理员可用）
+- 回答模块
+    - 提交回答（创建）
+    - 查看某次回答的评分结果
+    - 查看自己提交的回答列表
+    - 管理回答 - 增删改查（管理员可用）
+- 统计分析模块
+    - 应用评分结果分析和查看
 
-### 主流框架 & 特性
+## 技术选型
 
-- Spring Boot 2.7.x（贼新）
-- Spring MVC
+### 前端
+
+- Vue3
+- Pinia 状态管理
+- Axios 请求库
+- Arco Design 组件库
+- 前端工程化 Eslint + Prettier + TypeScript
+- 富文本编辑器
+- QRCode.js 二维码生成
+- OpenAPI 前端代码生成
+
+### 后端
+
+- Spring Boot 2.7.x + Spring MVC
 - MyBatis + MyBatis Plus 数据访问（开启分页）
-- Spring Boot 调试工具和项目处理器
-- Spring AOP 切面编程
-- Spring Scheduler 定时任务
-- Spring 事务注解
+- 存储层：MySQL 数据库 + Redis 缓存 + 腾讯云 COS 对象存储
+- Redission 分布式锁
+- Caffeine 本地缓存
+- 基于 ChatGLM 大模型实现 AI 能力
+- RxJava 响应式框架 + 线程池
+- SSE 服务推送
+- Spring AOP 自定义注解权限 + 记录日志
+- 策略模式 + 自定义注解实现多种评分策略
+- 多角度优化：性能、幂等性等
+- Hutool 工具库 + Apache Commons Lang3 工具类
 
-### 数据存储
+## 架构设计
 
-- MySQL 数据库
-- Redis 内存数据库
-- Elasticsearch 搜索引擎
-- 腾讯云 COS 对象存储
+![](doc/jiagou.jpg)
 
-### 工具类
+## 项目截图
+![](doc/1.jpg)
+![](doc/2.jpg)
+![](doc/3.jpg)
 
-- Easy Excel 表格处理
-- Hutool 工具库
-- Apache Commons Lang3 工具类
-- Lombok 注解
-
-### 业务特性
-
-- 业务代码生成器（支持自动生成 Service、Controller、数据模型代码）
-- Spring Session Redis 分布式登录
-- 全局请求响应拦截器（记录日志）
-- 全局异常处理器
-- 自定义错误码
-- 封装通用响应类
-- Swagger + Knife4j 接口文档
-- 自定义权限注解 + 全局校验
-- 全局跨域处理
-- 长整数丢失精度解决
-- 多环境配置
-
-
-## 业务功能
-
-- 提供示例 SQL（用户、帖子、帖子点赞、帖子收藏表）
-- 用户登录、注册、注销、更新、检索、权限管理
-- 帖子创建、删除、编辑、更新、数据库检索、ES 灵活检索
-- 帖子点赞、取消点赞
-- 帖子收藏、取消收藏、检索已收藏帖子
-- 帖子全量同步 ES、增量同步 ES 定时任务
-- 支持微信开放平台登录
-- 支持微信公众号订阅、收发消息、设置菜单
-- 支持分业务的文件上传
-
-### 单元测试
-
-- JUnit5 单元测试
-- 示例单元测试类
-
-### 架构设计
-
-- 合理分层
-
-
-## 快速上手
-
-> 所有需要修改的地方鱼皮都标记了 `todo`，便于大家找到修改的位置~
+## 快速运行
 
 ### MySQL 数据库
 
-1）修改 `application.yml` 的数据库配置为你自己的：
+1）修改 `application-dev.yml` 的数据库配置为你自己的：
 
 ```yml
 spring:
@@ -96,7 +110,7 @@ spring:
 
 ### Redis 分布式登录
 
-1）修改 `application.yml` 的 Redis 配置为你自己的：
+1）修改 `application-dev.yml` 的 Redis 配置为你自己的：
 
 ```yml
 spring:
@@ -108,7 +122,7 @@ spring:
     password: 123456
 ```
 
-2）修改 `application.yml` 中的 session 存储方式：
+2）修改 `application-dev.yml` 中的 session 存储方式：
 
 ```yml
 spring:
@@ -126,55 +140,42 @@ spring:
 
 修改后：
 
-
-```java
-@SpringBootApplication
-```
-
-### Elasticsearch 搜索引擎
-
-1）修改 `application.yml` 的 Elasticsearch 配置为你自己的：
-
-```yml
-spring:
-  elasticsearch:
-    uris: http://localhost:9200
-    username: root
-    password: 123456
-```
-
-2）复制 `sql/post_es_mapping.json` 文件中的内容，通过调用 Elasticsearch 的接口或者 Kibana Dev Tools 来创建索引（相当于数据库建表）
-
-```
-PUT post_v1
-{
- 参数见 sql/post_es_mapping.json 文件
-}
-```
-
-这步不会操作的话需要补充下 Elasticsearch 的知识，或者自行百度一下~
-
-3）开启同步任务，将数据库的帖子同步到 Elasticsearch
-
-找到 job 目录下的 `FullSyncPostToEs` 和 `IncSyncPostToEs` 文件，取消掉 `@Component` 注解的注释，再次执行程序即可触发同步：
-
 ```java
 // todo 取消注释开启任务
 //@Component
 ```
 
-### 业务代码生成器
+### COS 对象存储
 
-支持自动生成 Service、Controller、数据模型代码，配合 MyBatisX 插件，可以快速开发增删改查等实用基础功能。
+1）修改 `application-dev.yml` 的 COS 配置为你自己的：
 
-找到 `generate.CodeGenerator` 类，修改生成参数和生成路径，并且支持注释掉不需要的生成逻辑，然后运行即可。
-
+```yml
+cos:
+  client:
+    accessKey: XXX
+    secretKey: XXX
+    region: XXX
+    bucket: XXX
 ```
-// 指定生成参数
-String packageName = "com.teng.maidada";
-String dataName = "用户评论";
-String dataKey = "userComment";
-String upperDataKey = "UserComment";
+
+2）找到 constant 目录下的 `FileConstant`
+
+```java
+public interface FileConstant {
+    /**
+     * TODO COS 访问地址 修改为你的
+     */
+    String COS_HOST = "https://muziteng-1310538376.cos.ap-beijing.myqcloud.com";
+}
 ```
 
-生成代码后，可以移动到实际项目中，并且按照 `// todo` 注释的提示来针对自己的业务需求进行修改。
+### AI 能力
+
+修改 `application-dev.yml` 的 AI 配置为你自己的：
+
+```yml
+ai:
+  apiKey: XXX
+```
+
+地址：https://maas.aminer.cn/overview
