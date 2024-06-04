@@ -80,12 +80,12 @@
 
 ## 架构设计
 
-![](doc/jiagou.jpg)
+![](maimai-ai-backend/doc/jiagou.jpg)
 
 ## 项目截图
-![](doc/1.jpg)
-![](doc/2.jpg)
-![](doc/3.jpg)
+![](maimai-ai-backend/doc/1.jpg)
+![](maimai-ai-backend/doc/2.jpg)
+![](maimai-ai-backend/doc/3.jpg)
 
 ## 快速运行
 
