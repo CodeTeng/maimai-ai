@@ -12,8 +12,8 @@
           disabled
         >
           <div class="titleBar">
-            <img class="logo" src="../assets/logo.png" />
-            <div class="title">麦答答</div>
+            <img class="logo" src="../assets/logo.jpg" />
+            <div class="title">慧问快答</div>
           </div>
         </a-menu-item>
         <a-menu-item v-for="item in visibleRoutes" :key="item.path">
