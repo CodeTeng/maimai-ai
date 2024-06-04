@@ -1,4 +1,4 @@
-# maidada-frontend
+# maimai-ai-frontend
 
 ## Project setup
 ```

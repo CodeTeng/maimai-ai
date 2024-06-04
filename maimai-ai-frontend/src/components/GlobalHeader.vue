@@ -21,13 +21,18 @@
         </a-menu-item>
       </a-menu>
     </a-col>
-    <a-col flex="100px">
-      <div v-if="loginUserStore.loginUser.id">
-        {{ loginUserStore.loginUser.userName ?? "无名" }}
-      </div>
-      <div v-else>
-        <a-button type="primary" href="/user/login">登录</a-button>
-      </div>
+    <a-col flex="150px">
+      <a-space>
+        <a-avatar v-if="loginUserStore.loginUser.id">
+          <img alt="avatar" :src="loginUserStore.loginUser.userAvatar" />
+        </a-avatar>
+        <div v-if="loginUserStore.loginUser.id">
+          {{ loginUserStore.loginUser.userName ?? "无名" }}
+        </div>
+        <div v-else>
+          <a-button type="primary" href="/user/login">登录</a-button>
+        </div>
+      </a-space>
     </a-col>
   </a-row>
 </template>

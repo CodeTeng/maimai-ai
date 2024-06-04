@@ -1,7 +1,7 @@
 <template>
   <a-button type="outline" @click="handleClick" :loading="!submitting"
-    >AI 生成题目</a-button
-  >
+    >AI 生成题目
+  </a-button>
   <a-spin
     tip="生成题目中"
     :style="{ display: submitting ? 'none' : 'block' }"
@@ -110,7 +110,8 @@ const handleSubmit = async () => {
       "&questionNumber=" +
       form.questionNumber +
       "&optionNumber=" +
-      form.optionNumber
+      form.optionNumber,
+    { withCredentials: true }
   );
   // 关闭抽屉
   handleCancel();
@@ -132,6 +133,7 @@ const handleSubmit = async () => {
       eventSource.close();
     } else {
       message.error("生成失败");
+      eventSource.close();
     }
   };
 
