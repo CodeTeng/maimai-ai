@@ -23,9 +23,9 @@ public class ThreadTest {
         aiGenerateQuestionRequest.setAppId(3L);
         aiGenerateQuestionRequest.setQuestionNumber(10);
         aiGenerateQuestionRequest.setOptionNumber(4);
-        questionController.aiGenerateQuestionSSETest(aiGenerateQuestionRequest, false);
-        questionController.aiGenerateQuestionSSETest(aiGenerateQuestionRequest, false);
-        questionController.aiGenerateQuestionSSETest(aiGenerateQuestionRequest, true);
+//        questionController.aiGenerateQuestionSSETest(aiGenerateQuestionRequest, false);
+//        questionController.aiGenerateQuestionSSETest(aiGenerateQuestionRequest, false);
+//        questionController.aiGenerateQuestionSSETest(aiGenerateQuestionRequest, true);
         Thread.sleep(1000000L);
     }
 }
