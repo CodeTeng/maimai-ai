@@ -1,4 +1,4 @@
-package com.teng.maidada;
+package com.teng.maidada.factoryAndStrategy;
 
 import com.alibaba.fastjson.JSON;
 import com.teng.maidada.factoryAndStrategy.service.ShoppingService;
