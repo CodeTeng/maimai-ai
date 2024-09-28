@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 /**
  * 主类（项目启动入口）
@@ -14,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @MapperScan("com.teng.maidada.mapper")
 @EnableScheduling
+@EnableWebSocket
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 public class MainApplication {
 
