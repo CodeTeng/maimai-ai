@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.teng.maidada.common.ErrorCode;
 import com.teng.maidada.constant.CommonConstant;
+import com.teng.maidada.constant.RedisConstant;
 import com.teng.maidada.exception.BusinessException;
 import com.teng.maidada.mapper.UserMapper;
 import com.teng.maidada.model.dto.user.UserQueryRequest;
@@ -18,10 +19,14 @@ import com.teng.maidada.service.UserService;
 import com.teng.maidada.utils.SqlUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -35,6 +40,8 @@ import org.springframework.util.DigestUtils;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 盐值，混淆密码
@@ -57,7 +64,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!userPassword.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
-        synchronized (userAccount.intern()) {
+        RLock lock = redissonClient.getLock(RedisConstant.USER_ACCOUNT_LOCK + userAccount);
+        try {
+            // 竞争分布式锁 等待 3秒 10秒后自动释放
+            if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "系统错误，请稍后再试");
+            }
             // 账户不能重复
             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("userAccount", userAccount);
@@ -76,6 +88,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
             }
             return user.getId();
+        } catch (Exception e) {
+            log.error("注册失败");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "注册失败");
+        } finally {
+            if (lock != null && lock.isLocked()) {
+                if (lock.isHeldByCurrentThread()) {
+                    log.info(Thread.currentThread().getName() + "解锁成功");
+                    lock.unlock();
+                }
+            }
         }
     }
 

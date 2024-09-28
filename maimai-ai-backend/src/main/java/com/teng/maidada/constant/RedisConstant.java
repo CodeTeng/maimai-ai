@@ -15,4 +15,9 @@ public interface RedisConstant {
      * AI 得分类类锁
      */
     String AI_SCORE_ANSWER_LOCK = "AI_ANSWER_LOCK";
+
+    /**
+     * 用户注册账号锁
+     */
+    String USER_ACCOUNT_LOCK = "USER_ACCOUNT_LOCK";
 }
