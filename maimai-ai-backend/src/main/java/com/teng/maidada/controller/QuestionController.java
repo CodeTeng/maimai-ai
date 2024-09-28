@@ -21,14 +21,9 @@ import com.teng.maidada.model.vo.QuestionVO;
 import com.teng.maidada.service.AppService;
 import com.teng.maidada.service.QuestionService;
 import com.teng.maidada.service.UserService;
-import com.zhipu.oapi.service.v4.model.ModelData;
-import io.reactivex.Flowable;
-import io.reactivex.Scheduler;
-import io.reactivex.schedulers.Schedulers;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +31,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 题目接口
@@ -139,7 +132,7 @@ public class QuestionController {
 
     @ApiOperation("根据 id 获取题目（封装类）")
     @GetMapping("/get/vo")
-    public BaseResponse<QuestionVO> getQuestionVOById(Long id, HttpServletRequest request) {
+    public BaseResponse<QuestionVO> getQuestionVOById(Long id) {
         ThrowUtils.throwIf(id == null || id <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
         Question question = questionService.getById(id);
@@ -290,81 +283,6 @@ public class QuestionController {
         // AI 生成
         return questionService.aiGenerateQuestionSSE(userMessage, user);
     }
-
-//    @Deprecated
-//    @GetMapping("/ai_generate/sse/test")
-//    public SseEmitter aiGenerateQuestionSSETest(AiGenerateQuestionRequest aiGenerateQuestionRequest, boolean isVip) {
-//        ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
-//        // 获取参数
-//        Long appId = aiGenerateQuestionRequest.getAppId();
-//        Integer questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
-//        Integer optionNumber = aiGenerateQuestionRequest.getOptionNumber();
-//        // 获取应用信息
-//        App app = appService.getById(appId);
-//        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
-//        ThrowUtils.throwIf(questionNumber == null || questionNumber <= 0, ErrorCode.PARAMS_ERROR, "题目数量必须大于0");
-//        ThrowUtils.throwIf(questionNumber > 10, ErrorCode.PARAMS_ERROR, "题目数量一次生成不能超过10个");
-//        ThrowUtils.throwIf(optionNumber == null || optionNumber <= 0, ErrorCode.PARAMS_ERROR, "选项数量必须大于0");
-//        ThrowUtils.throwIf(optionNumber > 6, ErrorCode.PARAMS_ERROR, "选项数量不能超过6个");
-//        // 封装 Prompt
-//        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
-//        // AI 生成
-//        SseEmitter emitter = new SseEmitter(0L);
-//        AtomicInteger flag = new AtomicInteger(0);
-//        StringBuilder contentBuilder = new StringBuilder();
-//        Scheduler scheduler = Schedulers.single();
-//        // 这里可以修改为 VIP
-//        if (isVip) {
-//            scheduler = vipScheduler;
-//        }
-//        try {
-//            // 流式返回
-//            Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(PromptConstant.GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
-//            // 异步线程执行
-//            modelDataFlowable
-//                    .observeOn(scheduler)
-//                    .map(modelData -> modelData.getChoices().get(0).getDelta().getContent())
-//                    .map(content -> content.replaceAll("\\s", ""))
-//                    .filter(StringUtils::isNotBlank)
-//                    .flatMap(message -> {
-//                        // 将字符串转换为 List<Character>
-//                        List<Character> characterList = new ArrayList<>();
-//                        for (char c : message.toCharArray()) {
-//                            characterList.add(c);
-//                        }
-//                        return Flowable.fromIterable(characterList);
-//                    })
-//                    .doOnNext(c -> {
-//                        // 识别第一个 { 表示开始 AI 传输 JSON 数据，打开 flag 开始拼接 JSON 数组
-//                        if (c == '{') {
-//                            flag.addAndGet(1);
-//                        }
-//                        if (flag.get() > 0) {
-//                            contentBuilder.append(c);
-//                        }
-//                        if (c == '}') {
-//                            flag.addAndGet(-1);
-//                            if (flag.get() == 0) {
-//                                // 输出当前线程名字
-//                                System.out.println(Thread.currentThread().getName());
-//                                // 模拟普通用户阻塞
-//                                if (!isVip) {
-//                                    Thread.sleep(10000L);
-//                                }
-//                                // 累计单套题目满足 JSON 格式后， SSE 推送前端
-//                                // SSE 需要压缩成当行 JSON， SSE 无法识别换行
-//                                emitter.send(JSONUtil.toJsonStr(contentBuilder.toString()));
-//                                // 清空 StringBuilder
-//                                contentBuilder.setLength(0);
-//                            }
-//                        }
-//                    }).doOnComplete(emitter::complete).subscribe();
-//        } catch (Exception e) {
-//            log.error("生成失败");
-//            throw new BusinessException(ErrorCode.OPERATION_ERROR, "系统异常，生成失败");
-//        }
-//        return emitter;
-//    }
 }
 
 
