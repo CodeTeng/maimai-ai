@@ -73,7 +73,7 @@ public class AiManager {
                 .build();
         try {
             ModelApiResponse invokeModelApiResp = clientV4.invokeModelApi(chatCompletionRequest);
-            return invokeModelApiResp.getData().getChoices().get(0).toString();
+            return invokeModelApiResp.getData().getChoices().get(0).getMessage().getContent().toString();
         } catch (Exception e) {
             e.printStackTrace();
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, e.getMessage());

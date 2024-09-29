@@ -55,13 +55,8 @@ public class CustomTestScoringStrategy implements ScoringStrategy {
                         // 获取选项的result属性
                         String result = option.getResult();
 
-                        // 如果result属性不在optionCount中，初始化为0
-                        if (!optionCount.containsKey(result)) {
-                            optionCount.put(result, 0);
-                        }
-
                         // 在optionCount中增加计数
-                        optionCount.put(result, optionCount.get(result) + 1);
+                        optionCount.put(result, optionCount.getOrDefault(result, 0) + 1);
                     }
                 }
             }

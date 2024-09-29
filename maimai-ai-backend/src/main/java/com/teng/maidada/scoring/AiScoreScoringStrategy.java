@@ -81,7 +81,8 @@ public class AiScoreScoringStrategy implements ScoringStrategy {
                 Wrappers.lambdaQuery(Question.class).eq(Question::getAppId, appId)
         );
 
-        RLock lock = redissonClient.getLock(RedisConstant.AI_SCORE_ANSWER_LOCK);
+        // 防止缓存击穿
+        RLock lock = redissonClient.getLock(RedisConstant.AI_SCORE_ANSWER_LOCK + cacheKey);
         try {
             // 竞争分布式锁 等待 3秒 15秒后自动释放
             if (!lock.tryLock(3, 15, TimeUnit.SECONDS)) {
