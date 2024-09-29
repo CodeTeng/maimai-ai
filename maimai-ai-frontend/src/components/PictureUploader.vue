@@ -50,7 +50,7 @@
 import { IconEdit, IconPlus } from "@arco-design/web-vue/es/icon";
 import { ref, withDefaults, defineProps } from "vue";
 import { uploadFileUsingPost } from "@/api/fileController";
-import {Message, RequestOption} from "@arco-design/web-vue";
+import { Message, RequestOption } from "@arco-design/web-vue";
 
 /**
  * 定义组件属性类型

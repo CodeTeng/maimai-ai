@@ -1,4 +1,5 @@
 <template>
+  <a-button type="primary" @click="router.back()">返回应用</a-button>
   <div id="addScoringResultPage">
     <h2 style="margin-bottom: 32px">设置评分</h2>
     <a-form
@@ -21,9 +22,21 @@
         <a-input v-model="form.resultDesc" placeholder="请输入结果描述" />
       </a-form-item>
       <a-form-item field="resultPicture" label="结果图标">
-        <a-input
-          v-model="form.resultPicture"
-          placeholder="请输入结果图标地址"
+        <!--        <a-input-->
+        <!--          v-model="form.resultPicture"-->
+        <!--          placeholder="请输入结果图标地址"-->
+        <!--        />-->
+        <a-image
+          v-if="form.resultPicture"
+          width="120"
+          height="100"
+          style="margin-right: 10px"
+          :src="form.resultPicture"
+        />
+        <PictureUploader
+          :value="form.resultPicture"
+          :onChange="(value) => (form.resultPicture = value)"
+          :biz="FILE_UPLOAD_BIZ_ENUM['1']"
         />
       </a-form-item>
       <a-form-item field="resultProp" label="结果集">
@@ -53,7 +66,6 @@
 
 <script setup lang="ts">
 import { defineProps, ref, withDefaults } from "vue";
-import API from "@/api";
 import { useRouter } from "vue-router";
 import ScoringResultTable from "@/views/add/components/ScoringResultTable.vue";
 import {
@@ -61,6 +73,8 @@ import {
   editScoringResultUsingPost,
 } from "@/api/scoringResultController";
 import message from "@arco-design/web-vue/es/message";
+import { FILE_UPLOAD_BIZ_ENUM } from "@/constant/app";
+import PictureUploader from "@/components/PictureUploader.vue";
 
 interface Props {
   appId: string;

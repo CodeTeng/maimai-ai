@@ -23,8 +23,17 @@
     </a-col>
     <a-col flex="150px">
       <a-space>
-        <a-avatar v-if="loginUserStore.loginUser.id">
+        <a-avatar
+          v-if="loginUserStore.loginUser.id"
+          :trigger-icon-style="{ color: '#3491FA' }"
+          :style="{ backgroundColor: '#168CFF' }"
+          :auto-fix-font-size="false"
+          @click="logout"
+        >
           <img alt="avatar" :src="loginUserStore.loginUser.userAvatar" />
+          <template #trigger-icon>
+            <IconStop />
+          </template>
         </a-avatar>
         <div v-if="loginUserStore.loginUser.id">
           {{ loginUserStore.loginUser.userName ?? "无名" }}
@@ -35,6 +44,16 @@
       </a-space>
     </a-col>
   </a-row>
+  <a-modal
+    v-model:visible="visible"
+    hide-title
+    :mask-closable="false"
+    width="auto"
+    @ok="handleOk"
+    @cancel="handleCancel"
+  >
+    <div>你确定要退出吗？</div>
+  </a-modal>
 </template>
 
 <script setup lang="ts">
@@ -43,6 +62,9 @@ import { useRouter } from "vue-router";
 import { computed, ref } from "vue";
 import { useLoginUserStore } from "@/store/userStore";
 import checkAccess from "@/access/checkAccess";
+import { IconStop } from "@arco-design/web-vue/es/icon";
+import { Message } from "@arco-design/web-vue";
+import { userLogoutUsingPost } from "@/api/userController";
 
 const loginUserStore = useLoginUserStore();
 
@@ -73,6 +95,21 @@ const doMenuClick = (key: string) => {
   router.push({
     path: key,
   });
+};
+
+const visible = ref(false);
+const handleOk = async () => {
+  // 调用退出登录函数
+  await userLogoutUsingPost();
+  Message.success("退出成功");
+  loginUserStore.setLoginUser({});
+  visible.value = false;
+};
+const handleCancel = () => {
+  visible.value = false;
+};
+const logout = () => {
+  visible.value = true;
 };
 </script>
 

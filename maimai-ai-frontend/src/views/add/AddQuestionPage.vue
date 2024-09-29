@@ -1,5 +1,6 @@
 <template>
   <div id="addQuestionPage">
+    <a-button type="primary" @click="router.back()">返回应用</a-button>
     <h2 style="margin-bottom: 32px">设置题目</h2>
     <a-form
       :model="questionContent"

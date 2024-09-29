@@ -1,5 +1,6 @@
 <template>
   <div id="addAppPage">
+    <a-button type="primary" @click="router.back()">返回应用</a-button>
     <h2 style="margin-bottom: 32px">创建应用</h2>
     <a-form
       :model="form"
@@ -18,11 +19,11 @@
       </a-form-item>
       <a-form-item field="appIcon" label="应用图标">
         <a-image
-            v-if="form.appIcon"
-            width="120"
-            height="100"
-            style="margin-right: 10px"
-            :src="form.appIcon"
+          v-if="form.appIcon"
+          width="120"
+          height="100"
+          style="margin-right: 10px"
+          :src="form.appIcon"
         />
         <PictureUploader
           :value="form.appIcon"

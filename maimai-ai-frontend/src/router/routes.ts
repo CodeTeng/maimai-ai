@@ -19,6 +19,7 @@ import AnswerResultPage from "@/views/answer/AnswerResultPage.vue";
 import MyAnswerPage from "@/views/answer/MyAnswerPage.vue";
 import AppStatisticPage from "@/views/app/AppStatisticPage.vue";
 import MyAppPage from "@/views/app/MyAppPage.vue";
+import WS from "@/views/test/ws.vue";
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -149,6 +150,14 @@ export const routes: Array<RouteRecordRaw> = [
     component: AppStatisticPage,
     meta: {
       access: ACCESS_ENUM.ADMIN,
+    },
+  },
+  {
+    path: "/ws",
+    name: "WebSocket测试",
+    component: WS,
+    meta: {
+      hideInMenu: true,
     },
   },
   {

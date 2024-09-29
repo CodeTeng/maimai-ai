@@ -86,6 +86,7 @@ const form = reactive({
  * 提交
  */
 const handleSubmit = async ({ errors }) => {
+  console.log(errors);
   if (errors !== undefined) {
     if (
       errors.userAccount.isRequiredError ||
@@ -93,10 +94,10 @@ const handleSubmit = async ({ errors }) => {
       errors.checkPassword.isRequiredError
     )
       return;
-  }
-  if (errors.userAccount !== errors.checkPassword) {
-    message.warning("两次输入密码不一致");
-    return;
+    if (errors.userAccount !== errors.checkPassword) {
+      message.warning("两次输入密码不一致");
+      return;
+    }
   }
   const res = await userRegisterUsingPost(form);
   if (res.data.code === 0) {
