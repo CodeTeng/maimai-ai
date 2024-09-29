@@ -49,9 +49,6 @@ public class UserAnswerController {
     private UserAnswerService userAnswerService;
 
     @Resource
-    private AppService appService;
-
-    @Resource
     private UserService userService;
 
     @ApiOperation("创建用户答案")

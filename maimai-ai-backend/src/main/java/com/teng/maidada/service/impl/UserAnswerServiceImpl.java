@@ -233,6 +233,7 @@ public class UserAnswerServiceImpl extends ServiceImpl<UserAnswerMapper, UserAns
             ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         } catch (DuplicateKeyException e) {
             // ignore error
+            // 保证幂等
         }
         // 返回新写入的数据 id
         long newUserAnswerId = userAnswer.getId();
